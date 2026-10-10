@@ -14,17 +14,6 @@ Likeness is a likeness-licensing protocol on Monad, with a reference app on top:
 - **Revocation is one click**: new renders are refused on the next block and unused escrow is
   refundable.
 
-> **Status: Day 6.** Built: the contracts; licensing (terms, marketplace, EIP-712 approval or
-> auto-approve, USDC escrow); per-licence key release; delegated render payments; the render pipeline
-> (prompt filter, renderer, C2PA, `payRender`); the Envio indexer; the verifier; revocation; and
-> dashboards. Creator verification runs on Didit, at `VERIFICATION_LEVEL=free` for now (passive
-> liveness on Didit's free tier, reference photos matched on our server) and `full` for the live demo
-> (active liveness, photos matched by Didit; needs Didit credit). Renders and the prompt filter run on
-> Gemini. **Waiting on credentials:** Dynamic delegation and the server-wallet
-> agent, and HyperSync (Envio). Each is behind an interface and
-> switches on when its key is in `.env.local`. Until then the app says what isn't running; it never
-> fakes a pass. The [credentials checklist](#credentials) lists every key and what it turns on.
-
 ## Architecture
 
 ```mermaid
