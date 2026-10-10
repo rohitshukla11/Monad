@@ -55,6 +55,10 @@ async function sha256Hex(text: string) {
   return Array.from(h, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/** Filled in for the demo brand (Levis); the brand can edit it before generating. */
+const DEFAULT_PROMPT =
+  "Wearing a classic blue Levis denim trucker jacket over a plain white t-shirt, smiling, walking down a sunlit city street, natural golden-hour light, lifestyle advertising photo";
+
 export default function GeneratePage() {
   return (
     <Suspense>
@@ -68,7 +72,7 @@ function Generate() {
   const params = useSearchParams();
   const [licences, setLicences] = useState<Row[]>([]);
   const [id, setId] = useState<string>(params.get("licence") ?? "");
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [pre, setPre] = useState<Pre | null>(null);
   const [mode, setMode] = useState<"delegated" | "wallet">("delegated");
   const [busy, setBusy] = useState(false);
@@ -217,7 +221,7 @@ function Generate() {
                   className={`${inputClass} min-h-32 rounded-[18px] py-3`}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Smiling in a sunlit cafe holding our ceramic cup, product shot"
+                  placeholder={DEFAULT_PROMPT}
                 />
               </Field>
               {pre && (
