@@ -7,6 +7,10 @@ const MAX = 25 * 1024 * 1024;
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 /** Upload a file (multipart field "file"): C2PA + receipt lookup. The file is not stored. */
+
+// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const form = await req.formData().catch(() => null);

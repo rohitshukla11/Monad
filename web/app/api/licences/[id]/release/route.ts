@@ -8,6 +8,10 @@ import { VAULT_KEY } from "@/lib/server/store";
  * The creator's browser posts the reference-set data key, re-wrapped to this licence's service key.
  * No session needed: the release only verifies if it opens the creator's attested reference set.
  */
+
+// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest, ctx: RouteContext<"/api/licences/[id]/release">) {
   try {
     const id = licenceId((await ctx.params).id);

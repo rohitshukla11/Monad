@@ -8,6 +8,10 @@ import { address, fail, HttpError, json } from "@/lib/server/http";
  * Start (or resume) this wallet's Didit verification. Requires the signed consent first. Returns the
  * hosted verification URL; the result is read later from Didit's server API, never from the browser.
  */
+
+// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const { address: raw } = (await req.json().catch(() => ({}))) as { address?: string };

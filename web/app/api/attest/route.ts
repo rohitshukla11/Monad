@@ -5,6 +5,9 @@ import { attest, AttestError } from "@/lib/server/attest";
 import { json } from "@/lib/server/http";
 import { assertCiphertext } from "@/lib/server/store";
 
+// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const { address, referenceSet, mode } = (await req.json().catch(() => ({}))) as { address?: string; referenceSet?: ReferenceSet; mode?: string };
   if (!address || !isAddress(address) || !referenceSet) return json({ error: "bad request" }, 400);

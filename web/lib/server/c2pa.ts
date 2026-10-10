@@ -15,7 +15,7 @@ import "server-only";
  * so validators report "signing certificate untrusted"; the verifier page says so plainly.
  */
 import { Builder, LocalSigner, Reader } from "@contentauth/c2pa-node";
-import { readFileSync } from "node:fs";
+import { secretText } from "./secret";
 
 export const LICENCE_ASSERTION = "xyz.likeness.licence";
 
@@ -37,10 +37,11 @@ export type LicenceAssertion = {
 };
 
 function signer() {
-  const cert = process.env.C2PA_CERT_FILE ?? "../.secrets/c2pa/signer.pem";
-  const key = process.env.C2PA_KEY_FILE ?? "../.secrets/c2pa/signer.key";
+  const cert = secretText("C2PA_CERT_PEM", "C2PA_CERT_FILE", "../.secrets/c2pa/signer.pem");
+  const key = secretText("C2PA_KEY_PEM", "C2PA_KEY_FILE", "../.secrets/c2pa/signer.key");
   try {
-    return LocalSigner.newSigner(readFileSync(/*turbopackIgnore: true*/ cert), readFileSync(/*turbopackIgnore: true*/ key), "es256");
+    if (!cert || !key) throw new Error("missing");
+    return LocalSigner.newSigner(Buffer.from(cert), Buffer.from(key), "es256");
   } catch {
     throw Object.assign(new Error("C2PA signing certificate missing: run `sh scripts/c2pa-testcert.sh` (test certificate)"), { status: 503 });
   }

@@ -1,0 +1,8 @@
+# Never uploaded by `vercel deploy`: local secrets, local data, the free-level face models (too large
+# for a Vercel function), and build output.
+.env*.local
+.data
+.models
+.next
+node_modules
+demo-renders

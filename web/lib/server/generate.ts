@@ -14,7 +14,6 @@ import "server-only";
  *    wallet sends payRender, and the file is released only after its receipt is on chain.
  */
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { toHex, type Address, type Hex } from "viem";
 import { categoryLabels } from "@/lib/categories";
@@ -24,6 +23,7 @@ import { embedManifest, type LicenceAssertion } from "./c2pa";
 import { serverChain, singleton } from "./chain";
 import { dbGet, dbList, dbPut } from "./db";
 import { getGrant, sendDelegatedPayRender } from "./delegation";
+import { fileGet, filePut, localDir } from "./files";
 import { checkPrompt, type FilterResult } from "./filter";
 import { referenceImages } from "./keyring";
 import { readEscrow, readLicence, readReceipt } from "./protocol";
@@ -70,9 +70,7 @@ export class GenerateError extends Error {
 const AUTH_WINDOW = 10 * 60; // seconds the agent signature (and a wallet-mode hold) stays valid
 const locks = singleton("render-locks", () => new Map<string, Promise<unknown>>());
 
-function rendersDir() {
-  return path.resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.RENDERS_DIR ?? ".data/renders");
-}
+const rendersDir = () => localDir("RENDERS_DIR", "renders");
 
 /** One render at a time per licence: the render index is part of what the agent signs. */
 async function serial<T>(licenceId: string, f: () => Promise<T>): Promise<T> {
@@ -156,9 +154,8 @@ export async function generate(input: { licenceId: bigint; licensee: Address; pr
     const deadline = BigInt(Math.floor(Date.now() / 1000) + AUTH_WINDOW);
     const agentSig = await agent.signRender({ licenceId: input.licenceId, assetHash, renderIndex, deadline });
 
-    await mkdir(rendersDir(), { recursive: true });
     const file = `${assetHash}.${out.mime === "image/png" ? "png" : "jpg"}`;
-    await writeFile(path.join(/*turbopackIgnore: true*/ rendersDir(), file), signed);
+    await filePut(`renders/${file}`, path.join(rendersDir(), file), signed, { contentType: out.mime, overwrite: false });
     const record: RenderRecord = {
       assetHash,
       token: randomBytes(24).toString("base64url"),
@@ -227,5 +224,7 @@ export async function fileByToken(token: string): Promise<{ bytes: Buffer; mime:
   if (!/^[A-Za-z0-9_-]{32}$/.test(token)) return null;
   const r = (await dbList<RenderRecord>("renders")).find((x) => x.token === token && x.state === "paid");
   if (!r) return null;
-  return { bytes: await readFile(path.join(/*turbopackIgnore: true*/ rendersDir(), r.file)), mime: r.mime, name: `likeness-${r.licenceId}-${r.renderIndex}${r.test ? "-TEST-RENDER" : ""}.${r.file.split(".").pop()}` };
+  const bytes = await fileGet(`renders/${r.file}`, path.join(rendersDir(), r.file));
+  if (!bytes) return null;
+  return { bytes, mime: r.mime, name: `likeness-${r.licenceId}-${r.renderIndex}${r.test ? "-TEST-RENDER" : ""}.${r.file.split(".").pop()}` };
 }

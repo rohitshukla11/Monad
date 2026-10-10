@@ -11,7 +11,7 @@ import "server-only";
  *  - "local-key": a key file (RENDER_AGENT_KEY_FILE). Used until the Dynamic wallet exists.
  * Whichever is used, its address must be registered with LicenseEscrow.setRenderAgent by the owner.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { secretText } from "./secret";
 import type { Address, Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { LicenseEscrowAbi } from "@/lib/abi/LicenseEscrow";
@@ -37,15 +37,13 @@ export function renderTypedData(m: RenderMessage) {
   };
 }
 
-function dynamicAgentFile() {
-  return process.env.DYNAMIC_AGENT_FILE ?? "../.secrets/dynamic-agent.json";
-}
 
 async function dynamicAgent(): Promise<RenderAgent | null> {
   const environmentId = process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID;
   const apiKey = process.env.DYNAMIC_API_KEY;
-  if (!environmentId || !apiKey || !existsSync(/*turbopackIgnore: true*/ dynamicAgentFile())) return null;
-  const saved = JSON.parse(readFileSync(/*turbopackIgnore: true*/ dynamicAgentFile(), "utf8"));
+  const file = secretText("DYNAMIC_AGENT_JSON", "DYNAMIC_AGENT_FILE", "../.secrets/dynamic-agent.json");
+  if (!environmentId || !apiKey || !file) return null;
+  const saved = JSON.parse(file);
   const { DynamicEvmWalletClient } = await import("@dynamic-labs-wallet/node-evm");
   const client = new DynamicEvmWalletClient({ environmentId });
   await client.authenticateApiToken(apiKey);

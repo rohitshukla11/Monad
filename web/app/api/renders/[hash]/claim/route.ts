@@ -4,6 +4,10 @@ import { claim, GenerateError } from "@/lib/server/generate";
 import { fail, json } from "@/lib/server/http";
 
 /** Wallet mode: the brand sent payRender itself; release the file once its receipt is on chain. */
+
+// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest, ctx: RouteContext<"/api/renders/[hash]/claim">) {
   try {
     const hash = (await ctx.params).hash;

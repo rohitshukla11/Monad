@@ -6,6 +6,7 @@ import "server-only";
 import { existsSync } from "node:fs";
 import { historySource } from "./index";
 import { loadKey } from "./keys";
+import { secretText } from "./secret";
 
 export type Integration = {
   key: string;
@@ -17,10 +18,7 @@ export type Integration = {
 };
 
 const set = (...names: string[]) => names.every((n) => !!process.env[n]);
-const file = (envName: string, fallback?: string) => {
-  const f = process.env[envName] ?? fallback;
-  return !!f && existsSync(f);
-};
+const secret = (valueVar: string, fileVar: string, fallback?: string) => secretText(valueVar, fileVar, fallback) !== null;
 
 export function integrations(): Integration[] {
   return [
@@ -35,17 +33,17 @@ export function integrations(): Integration[] {
     {
       key: "dynamic-delegation",
       name: "Dynamic delegated access",
-      configured: set("NEXT_PUBLIC_DYNAMIC_ENV_ID", "DYNAMIC_API_KEY", "DYNAMIC_WEBHOOK_SECRET") && file("DYNAMIC_DELEGATION_PRIVATE_KEY_FILE"),
+      configured: set("NEXT_PUBLIC_DYNAMIC_ENV_ID", "DYNAMIC_API_KEY", "DYNAMIC_WEBHOOK_SECRET") && secret("DYNAMIC_DELEGATION_PRIVATE_KEY_PEM", "DYNAMIC_DELEGATION_PRIVATE_KEY_FILE"),
       turnsOn: "One-click renders: the brand's embedded wallet sends payRender through the render service, under the payRender-only policy",
-      env: ["DYNAMIC_API_KEY", "DYNAMIC_WEBHOOK_SECRET", "DYNAMIC_DELEGATION_PRIVATE_KEY_FILE"],
+      env: ["DYNAMIC_API_KEY", "DYNAMIC_WEBHOOK_SECRET", "DYNAMIC_DELEGATION_PRIVATE_KEY_FILE or _PEM"],
       whenMissing: "Brands confirm each payRender in their own wallet; seeded test brands can use dev delegation (DEV_DELEGATION=1)",
     },
     {
       key: "dynamic-agent",
       name: "Dynamic server wallet (render agent)",
-      configured: set("NEXT_PUBLIC_DYNAMIC_ENV_ID", "DYNAMIC_API_KEY") && file("DYNAMIC_AGENT_FILE", "../.secrets/dynamic-agent.json"),
+      configured: set("NEXT_PUBLIC_DYNAMIC_ENV_ID", "DYNAMIC_API_KEY") && secret("DYNAMIC_AGENT_JSON", "DYNAMIC_AGENT_FILE", "../.secrets/dynamic-agent.json"),
       turnsOn: "The render agent's Render signatures come from a Dynamic server wallet",
-      env: ["DYNAMIC_API_KEY", "DYNAMIC_AGENT_FILE (written by pnpm agent:dynamic)"],
+      env: ["DYNAMIC_API_KEY", "DYNAMIC_AGENT_FILE (written by pnpm agent:dynamic) or DYNAMIC_AGENT_JSON"],
       whenMissing: "The render agent signs with a local key (RENDER_AGENT_KEY_FILE)",
     },
     {
@@ -83,17 +81,17 @@ export function integrations(): Integration[] {
     {
       key: "render-agent",
       name: "Render agent key",
-      configured: !!loadKey("RENDER_AGENT_KEY_FILE", "RENDER_AGENT_PRIVATE_KEY") || file("DYNAMIC_AGENT_FILE", "../.secrets/dynamic-agent.json"),
+      configured: !!loadKey("RENDER_AGENT_KEY_FILE", "RENDER_AGENT_PRIVATE_KEY") || secret("DYNAMIC_AGENT_JSON", "DYNAMIC_AGENT_FILE", "../.secrets/dynamic-agent.json"),
       turnsOn: "Signing Render attestations so payRender can pay out",
-      env: ["RENDER_AGENT_KEY_FILE"],
+      env: ["RENDER_AGENT_KEY_FILE or RENDER_AGENT_PRIVATE_KEY"],
       whenMissing: "No renders can be paid",
     },
     {
       key: "c2pa",
       name: "C2PA signing certificate",
-      configured: file("C2PA_CERT_FILE", "../.secrets/c2pa/signer.pem") && file("C2PA_KEY_FILE", "../.secrets/c2pa/signer.key"),
+      configured: secret("C2PA_CERT_PEM", "C2PA_CERT_FILE", "../.secrets/c2pa/signer.pem") && secret("C2PA_KEY_PEM", "C2PA_KEY_FILE", "../.secrets/c2pa/signer.key"),
       turnsOn: "C2PA manifests in every render (currently a TEST certificate, not on the C2PA trust list)",
-      env: ["C2PA_CERT_FILE", "C2PA_KEY_FILE"],
+      env: ["C2PA_CERT_FILE and C2PA_KEY_FILE, or C2PA_CERT_PEM and C2PA_KEY_PEM"],
       whenMissing: "Renders are refused: every output must carry a manifest",
     },
   ];

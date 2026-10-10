@@ -8,6 +8,10 @@ import { getGrant } from "@/lib/server/delegation";
 import { geminiModels } from "@/lib/server/gemini";
 
 /** The checks a render must pass, plus which renderer, filter and payment path would run. */
+
+// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const { licenceId: raw, licensee: who, prompt } = (await req.json().catch(() => ({}))) as { licenceId?: string; licensee?: string; prompt?: string };

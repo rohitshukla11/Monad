@@ -21,6 +21,7 @@ import "server-only";
  *  - "dev-local": a seeded test brand's key file, only with DEV_DELEGATION=1. Labelled as such.
  */
 import { readFileSync } from "node:fs";
+import { secretText } from "./secret";
 import path from "node:path";
 import { decodeFunctionData, encodeFunctionData, isAddress, toFunctionSelector, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -133,12 +134,12 @@ function devKeyFor(licensee: Address): Hex {
 async function dynamicSign(grant: Grant, tx: Required<Pick<TxRequest, "to" | "data" | "chainId">> & { gas: bigint; nonce: number; maxFeePerGas: bigint; maxPriorityFeePerGas: bigint }): Promise<Hex> {
   const environmentId = process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID;
   const apiKey = process.env.DYNAMIC_API_KEY;
-  const pemFile = process.env.DYNAMIC_DELEGATION_PRIVATE_KEY_FILE;
-  if (!environmentId || !apiKey || !pemFile || !grant.dynamic) throw new PolicyError("Dynamic delegated access is not configured");
+  const pem = secretText("DYNAMIC_DELEGATION_PRIVATE_KEY_PEM", "DYNAMIC_DELEGATION_PRIVATE_KEY_FILE");
+  if (!environmentId || !apiKey || !pem || !grant.dynamic) throw new PolicyError("Dynamic delegated access is not configured");
   const { decryptDelegatedWebhookData } = await import("@dynamic-labs-wallet/node");
   const { createDelegatedEvmWalletClient, delegatedSignTransaction } = await import("@dynamic-labs-wallet/node-evm");
   const { decryptedDelegatedShare, decryptedWalletApiKey } = decryptDelegatedWebhookData({
-    privateKeyPem: readFileSync(pemFile, "utf8"),
+    privateKeyPem: pem,
     encryptedDelegatedKeyShare: grant.dynamic.encryptedDelegatedShare as never,
     encryptedWalletApiKey: grant.dynamic.encryptedWalletApiKey as never,
   });

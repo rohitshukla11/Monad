@@ -6,7 +6,6 @@ import "server-only";
  * Current state (status, terms, balances) is always read from the contracts, never from this cache.
  */
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseEventLogs, type Address, type Hex, type Log } from "viem";
 import { CreatorRegistryAbi } from "@/lib/abi/CreatorRegistry";
@@ -14,6 +13,7 @@ import { LicenseEscrowAbi } from "@/lib/abi/LicenseEscrow";
 import { LicenseRegistryAbi } from "@/lib/abi/LicenseRegistry";
 import { deployment, requireAddress } from "@/lib/deployment";
 import { pub, rpcUrl, singleton } from "../chain";
+import { fileGet, filePut, localDir } from "../files";
 import { emptyHistory, type History } from "./types";
 
 const CHUNK = 100n;
@@ -21,12 +21,17 @@ const CONCURRENCY = 8;
 const abi = [...CreatorRegistryAbi, ...LicenseRegistryAbi, ...LicenseEscrowAbi];
 
 function cacheFile(): string {
-  const base = path.resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.INDEX_CACHE_DIR ?? ".data");
   // One cache per RPC endpoint and start block: a local fork and the public testnet must never share
   // rows, and each new fork (same local URL, later start block) starts from an empty cache.
   const tag = createHash("sha256").update(`${rpcUrl()}|${startBlock()}`).digest("base64url").slice(0, 16);
-  return path.join(base, `index-${deployment.chainId}-${tag}.json`);
+  return `index-${deployment.chainId}-${tag}.json`;
 }
+
+// The cache is kept with the other files (./files): on disk locally, in private Blob on Vercel, so a
+// fresh serverless instance does not rescan from the deployment block.
+const cachePaths = (name: string) => [`cache/${name}`, path.join(localDir("INDEX_CACHE_DIR", ""), name)] as const;
+const SAVE_EVERY = 5 * 60_000;
+const lastSaved = new Map<string, number>();
 
 function startBlock(): bigint {
   return BigInt(process.env.INDEX_START_BLOCK ?? deployment.startBlock ?? 0);
@@ -37,7 +42,9 @@ const state = singleton<Map<string, State>>("rpc-index", () => new Map());
 
 async function load(file: string): Promise<History> {
   try {
-    const h = JSON.parse(await readFile(file, "utf8")) as History;
+    const raw = await fileGet(...cachePaths(file));
+    if (!raw) throw new Error("no cache");
+    const h = JSON.parse(raw.toString("utf8")) as History;
     if (h.source === "rpc" && typeof h.head === "number" && h.head >= Number(startBlock()) - 1) {
       // Caches written before AttestationUpdated was tracked: no updateAttestation had been sent yet
       // when that field was added (2026-10-10), so an empty list is exact, and a rescan is avoided.
@@ -147,8 +154,11 @@ async function scan(h: History, file: string): Promise<History> {
 
   apply(h, logs, times);
   h.head = Number(head);
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, JSON.stringify(h));
+  // Save when there are new events, else at most every few minutes (each save is a Blob write on Vercel).
+  if (logs.length > 0 || Date.now() - (lastSaved.get(file) ?? 0) > SAVE_EVERY) {
+    await filePut(...cachePaths(file), JSON.stringify(h), { contentType: "application/json", overwrite: true }).catch(() => {});
+    lastSaved.set(file, Date.now());
+  }
   return h;
 }
 
