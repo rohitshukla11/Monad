@@ -95,10 +95,10 @@ function Hero() {
         </h1>
         <div
           aria-hidden="true"
-          className="lk-rise absolute left-1/2 top-[70px] h-[250px] w-[164px] overflow-hidden rounded-t-[999px] sm:top-[150px] sm:h-[clamp(300px,31vw,450px)] sm:w-[clamp(196px,20.3vw,294px)]"
+          className="lk-rise absolute left-1/2 top-[58px] h-[230px] w-[164px] [mask-image:linear-gradient(to_bottom,#000_92%,transparent)] sm:top-[128px] sm:h-[412px] sm:w-[294px]"
           style={{ transform: "translateX(-50%)" }}
         >
-          <Image src="/landing/portrait-lime.png" alt="" fill priority sizes="(min-width: 640px) 300px, 170px" className="scale-[1.04] object-cover object-top" />
+          <Image src="/landing/hero-cutout.webp" alt="" fill priority sizes="(min-width: 640px) 300px, 170px" className="object-contain object-bottom" />
         </div>
         <Ribbon words={RIBBON_A} dir="l" className="top-[236px] z-10 bg-violet text-white sm:top-[476px]" style={{ transform: "rotate(4deg)" }} />
         <Ribbon words={RIBBON_B} dir="r" className="top-[266px] z-10 bg-[#4C5230] text-white sm:top-[514px]" style={{ transform: "rotate(-3deg)" }} />
