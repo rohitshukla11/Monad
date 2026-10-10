@@ -127,7 +127,7 @@ On the fork, the demo:
   refunds.
 
 It prints every transaction hash. That test creator exists only on the fork. On Monad testnet the demo
-runs in the app with a Didit-verified creator ([local checks](docs/local-checks.md)).
+runs in the app with a Didit-verified creator.
 
 **Test brand.** With `DEV_WALLETS=1` in `.env.local`, the header picker can act as the test brand,
 marked DEV. The choice is per tab, so one tab can be the brand while another uses your own wallet.
@@ -137,14 +137,20 @@ marked DEV. The choice is per tab, so one tab can be the brand while another use
 Docker is needed. Then set `ENVIO_PG_URL` in `web/.env.local`. Without an indexer, the app reads
 history from cached RPC log scans; current state always comes from the contracts.
 
-Step-by-step checks: [docs/local-checks.md](docs/local-checks.md).
-
 ### Deploying
 
-The app deploys to Vercel with **Root Directory** `web`, private Blob storage (`STORE_DRIVER=blob`) and
-secrets passed as values. On serverless, render keys and matched capture digests live in one instance's
-memory, and the free-level face matcher is too large to deploy. See
-[docs/deploy-vercel.md](docs/deploy-vercel.md).
+Run `web/` on one always-on Node 22 server with a persistent disk, about 2 GB of RAM and HTTPS on a
+stable domain. Render keys and matched capture digests live in that server's memory by design, and the
+free-level face model (260 MB) lives on its disk. Every `*_FILE` secret can be passed as its value
+instead (for example `ATTESTER_PRIVATE_KEY`, `C2PA_CERT_PEM`, `DYNAMIC_AGENT_JSON`), and `NEXT_PUBLIC_RP_ID`
+must be the deployed domain.
+
+Vercel also builds it ([`web/vercel.json`](web/vercel.json); `STORE_DRIVER=blob`;
+`pnpm index:seed-blob` to start with a caught-up history cache), with known limits:
+
+- across serverless instances, a photo release or a matched-photo record can be missing, so renders
+  and registration may need a retry;
+- the free-level face matcher is above the function size limit, so it does not run.
 
 ## App
 
@@ -153,7 +159,7 @@ memory, and the free-level face matcher is too large to deploy. See
 | Path | What it does |
 |---|---|
 | `/` | Landing: how a licence runs, measured numbers, real creators, and the call to become one |
-| `/onboard` | Three steps. **Sign in:** email creates the embedded wallet ([Dynamic](docs/dynamic.md)) and MON for gas arrives in the background. **Verify it's you:** signed consent, then Didit (ID 18+, liveness, selfie-to-ID face match). **Capture and protect:** three photos, each face-matched to the liveness selfie, then one button creates the passkey ([Mera](docs/mera.md)), seals the photos, gets the attestation and calls `register` |
+| `/onboard` | Three steps. **Sign in:** email creates the embedded wallet (Dynamic) and MON for gas arrives in the background. **Verify it's you:** signed consent, then Didit (ID 18+, liveness, selfie-to-ID face match). **Capture and protect:** three photos, each face-matched to the liveness selfie, then one button creates the passkey (Mera), seals the photos, gets the attestation and calls `register` |
 | `/market`, `/market/[creator]` | Registered creators with their trust label and terms; request a licence: auto-approved, or sent for the creator's EIP-712 signature |
 | `/dashboard` | Creator: terms editor, pause, approve or decline requests, release photos per licence, revoke one or all, earnings. Brand: USDC, deposit, refund, delegation, renders |
 | `/generate` | Every check before the button; render, C2PA, `payRender` (delegated or from the wallet) |
@@ -471,9 +477,7 @@ Built from scratch during the hackathon, except:
   - the palette, the Unbounded + Poppins pairing, the radii and the motion are tokens in
     [`web/app/globals.css`](web/app/globals.css);
   - the shared components (pills, cards, hero, panel, icons, reveal and count-up hooks) are in
-    [`web/components/ds/`](web/components/ds/);
-  - screenshots of every page, at 1440 and 390 px, as a creator and as a brand, are in
-    [`docs/screens/redesign/`](docs/screens/redesign/).
+    [`web/components/ds/`](web/components/ds/).
 
   An earlier version used colour token names, a font pairing and a focus-ring rule from the team's
   earlier project, Whistle. The old token names (ground, panel, line, text, muted and so on) still

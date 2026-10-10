@@ -170,7 +170,7 @@ async function main() {
   const brand = wallet(B.key);
   if (!FORK && !SEED_ONLY) {
     line("\nThe scripted demo runs only on a fork: pnpm demo --fork.");
-    line("On Monad testnet there is no test creator; run the demo in the app with a Didit-verified creator (docs/local-checks.md).");
+    line("On Monad testnet there is no test creator; run the demo in the app with a Didit-verified creator.");
     process.exitCode = 2;
     return;
   }

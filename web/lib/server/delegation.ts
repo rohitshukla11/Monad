@@ -7,7 +7,7 @@ import "server-only";
  *  1. Dynamic signer policy (set by the brand's browser when delegating): chain id 10143 and an address
  *     allowlist (the protocol contracts and USDC). Dynamic's SDK states that `functionName`,
  *     `contractAbi` and `valueLimit.totalLimit` are not evaluated on signer layers, so we do not
- *     pretend they are; see docs/dynamic.md.
+ *     pretend they are.
  *  2. This module's guard, run before any delegated signature: destination is our escrow, chain is
  *     10143, value is 0, calldata decodes as payRender for a licence this brand holds, and the price
  *     fits under the remaining cap.
