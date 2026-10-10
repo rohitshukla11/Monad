@@ -9,23 +9,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { CreatorFace, pillClass, Silhouette, silhouetteFor } from "@/components/ds";
-import { IconArrowLeft, IconArrowRight, IconArrowUpRight, IconChevron } from "@/components/ds/icons";
+import { pillClass } from "@/components/ds";
+import { IconArrowLeft, IconArrowRight, IconChevron } from "@/components/ds/icons";
 import { useCountUp, useInView } from "@/components/ds/motion";
 import { BUILT_ON, MEASUREMENTS, TESTIMONIALS } from "@/lib/site-content";
 
-export type LandingCreator = { address: string; price: string; meta: string; photo: string };
 
 const RIBBON_A = ["Advertising", "✳", "Social", "✳", "Editorial", "✳", "Entertainment", "✳", "Product", "✳"];
 const RIBBON_B = ["Approve", "✳", "Get paid per render", "✳", "Revoke any time", "✳", "Verified humans", "✳"];
 
-export function Landing({ creators }: { creators: LandingCreator[] }) {
+export function Landing() {
   return (
     <main id="main" className="bg-ink font-sans text-ink">
       <Hero />
       <Stats />
       <HowItWorks />
-      {creators.length > 0 && <Creators creators={creators} />}
+      <Creators />
       <Quotes />
     </main>
   );
@@ -293,18 +292,23 @@ function HowItWorks() {
 
 // ---------------------------------------------------------------- creators
 
-const FRAMES = ["#F6C9DD", "#BFE3C9", "#C9B8FA", "#DCF37B"];
+/**
+ * Sample images only, never a real creator's face: each card is labelled Example and invites a creator.
+ * Real creators are in the marketplace, with the photo they chose to publish there.
+ */
+const EXAMPLES = [
+  { photo: "/landing/portrait-pink.png", frame: "/landing/card-violet.png" },
+  { photo: "/landing/portrait-glasses.png", frame: "/landing/card-ribbons.png" },
+  { photo: "/landing/portrait-curly.png", frame: "/landing/card-sky.png" },
+];
 const TILTS = ["-7deg", "-3deg", "6deg"];
 /** Grid placement at sm and up: first card tall on the left, heading top right, the others below it. */
 const PLACE = ["sm:col-start-1 sm:row-span-2 sm:row-start-1", "sm:col-start-2 sm:row-start-2 sm:-ml-6 sm:mt-6", "sm:col-start-3 sm:row-start-2 sm:-mt-4"];
 
-function Creators({ creators }: { creators: LandingCreator[] }) {
+function Creators() {
   const [shift, setShift] = useState(0);
   const { ref, seen } = useInView<HTMLDivElement>();
-  // Real, listed creators with a public photo only; the section is hidden when there are none.
-  const slots = creators;
-  const shown = [0, 1, 2].slice(0, Math.min(3, slots.length)).map((i) => slots[(i + shift) % slots.length]);
-  const canRotate = creators.length > 3;
+  const shown = [0, 1, 2].map((i) => EXAMPLES[(i + shift) % EXAMPLES.length]);
   return (
     <section className="relative overflow-hidden bg-sky">
       <svg aria-hidden="true" viewBox="0 0 1440 800" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
@@ -326,52 +330,52 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
           <span className="flex gap-1 pb-1">
             <button
               type="button"
-              aria-label="Previous creator"
-              disabled={!canRotate}
-              onClick={() => setShift((s) => (s + slots.length - 1) % slots.length)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border-0 bg-transparent disabled:opacity-40"
+              aria-label="Previous card"
+              onClick={() => setShift((s) => (s + EXAMPLES.length - 1) % EXAMPLES.length)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border-0 bg-transparent"
             >
               <IconArrowLeft size={22} />
             </button>
             <button
               type="button"
-              aria-label="Next creator"
-              disabled={!canRotate}
-              onClick={() => setShift((s) => (s + 1) % slots.length)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border-0 bg-transparent disabled:opacity-40"
+              aria-label="Next card"
+              onClick={() => setShift((s) => (s + 1) % EXAMPLES.length)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border-0 bg-transparent"
             >
               <IconArrowRight size={22} />
             </button>
           </span>
         </div>
-        {shown.map((cr, i) => {
+        {shown.map((ex, i) => {
           const transform = seen ? `rotate(${TILTS[i]})` : "translateX(160px) rotate(8deg)";
-          const style = { transform, transitionDelay: `${0.1 + i * 0.18}s`, background: FRAMES[(i + shift) % FRAMES.length] };
-          const cls = `card-in${seen ? " in" : ""} relative block self-start rounded-[28px] p-3 text-ink no-underline shadow-[0_18px_40px_rgba(18,19,22,0.12)] ${PLACE[i]}`;
-          const s = silhouetteFor(cr.address);
           return (
-            <Link key={cr.address + i} href={`/market/${cr.address}`} className={cls} style={style}>
-              <span className="absolute left-5 top-5 z-10 rounded-full bg-ink px-3 py-1.5 font-display text-[11px] font-bold text-lime">{cr.price} / RENDER</span>
-              <span aria-hidden="true" className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/70">
-                <IconArrowUpRight size={16} />
-              </span>
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[20px]" style={{ background: s.tint }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={cr.photo} alt={`Creator ${cr.address.slice(0, 6)}…${cr.address.slice(-4)}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            <Link
+              key={ex.photo}
+              href="/onboard"
+              className={`card-in${seen ? " in" : ""} relative block self-start rounded-[28px] p-3 text-ink no-underline shadow-[0_18px_40px_rgba(18,19,22,0.12)] ${PLACE[i]}`}
+              style={{ transform, transitionDelay: `${0.1 + i * 0.18}s`, backgroundImage: `url(${ex.frame})`, backgroundSize: "cover" }}
+            >
+              <span className="absolute left-5 top-5 z-10 rounded-full bg-white px-3 py-1.5 font-display text-[11px] font-bold">EXAMPLE</span>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[20px]">
+                <Image src={ex.photo} alt="" fill sizes="(min-width: 640px) 340px, 90vw" className="scale-[1.04] object-cover object-top" />
               </div>
-              <div className="absolute bottom-6 left-6 right-6 flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2.5">
-                <CreatorFace seed={cr.address} photo={cr.photo} size={32} />
+              <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white px-3 py-2.5">
                 <span className="flex min-w-0 flex-col">
-                  <span className="tnum font-display text-[14px] font-bold">
-                    {cr.address.slice(0, 6)}…{cr.address.slice(-4)}
-                  </span>
-                  <span className="truncate text-[12px] text-grey">{cr.meta}</span>
+                  <span className="font-display text-[14px] font-bold">YOUR FACE HERE</span>
+                  <span className="text-[12px] text-grey">Verify once, get paid per render</span>
                 </span>
+                <span className={pillClass("ink", "min-h-9 px-3 text-[12px]")}>Become a creator</span>
               </div>
             </Link>
           );
         })}
-
+        <p className="m-0 text-[13px] text-[#3E4148] sm:col-span-3">
+          Example images, not registered creators.{" "}
+          <Link href="/market" className="font-semibold text-ink underline">
+            See the real creators in the marketplace
+          </Link>
+          .
+        </p>
       </div>
     </section>
   );
