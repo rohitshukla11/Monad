@@ -1,0 +1,33 @@
+# ------------------------------------------------ secrets: never, anywhere
+.env
+.env.*
+!.env.example
+.secrets/
+*.pem
+*.key
+*.keystore
+
+# ------------------------------------------------ biometric data: never committed, never at rest in plaintext
+captures/
+*.reference/
+
+# ------------------------------------------------ dependencies and build output
+node_modules/
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/*/dry-run/
+contracts/foundry-pp/
+.next/
+.vercel/
+*.tsbuildinfo
+
+# ------------------------------------------------ editor and OS
+.DS_Store
+.vscode/
+
+# local ciphertext store
+.data/
+contracts/broadcast/*/*/run-[0-9]*.json
+
+# live demo outputs (rendered images of a real creator): never committed
+demo-renders/
