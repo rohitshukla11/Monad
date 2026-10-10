@@ -216,12 +216,13 @@ face model stays on the volume and nothing lives across instances. Set the same 
 
 | Path | What it does |
 |---|---|
-| `/` | Landing: how a licence runs, measured numbers, real creators, and the call to become one |
-| `/onboard` | Three steps under one progress bar. **Sign in:** email creates the embedded wallet (Dynamic); MON for gas arrives in the background, with a Retry line only if it fails; registered creators go straight to the dashboard. **Verify it's you:** one screen with the consent and **Agree and verify**, which signs it and starts Didit (ID 18+, liveness, selfie-to-ID face match); plain-language results with Try again. **Protect your photos:** three guided photos with ticks and single-photo retakes, then **Protect with Face ID and register** (passkey via Mera, encryption in the browser, ciphertext upload, attestation, `register` with starter terms: Advertising and Social, worldwide, 2.00 USDC, 100 renders, 30 days, ask each time). Resumes from server and chain state; technical details in a collapsed panel |
-| `/market`, `/market/[creator]` | Registered creators with their trust label and terms; request a licence: auto-approved, or sent for the creator's EIP-712 signature |
-| `/dashboard` | Creator: terms editor, pause, approve or decline requests, release photos per licence, revoke one or all, earnings. Brand: USDC, deposit, refund, delegation, renders |
+| `/` | Landing: how a licence runs, measured numbers, real listed creators with their public photos (hidden when there are none), and the calls to become a creator or license a face |
+| `/onboard` | Three steps under one progress bar. **Sign in:** email creates the embedded wallet (Dynamic); MON for gas arrives in the background, with a Retry line only if it fails; registered creators go straight to the dashboard. **Verify it's you:** one screen with the consent and **Agree and verify**, which signs it and starts Didit (ID 18+, liveness, selfie-to-ID face match); plain-language results with Try again. **Protect your photos:** three guided photos with ticks and single-photo retakes, then **Protect with Face ID and register** (passkey via Mera, encryption in the browser, ciphertext upload, attestation, `register` with starter terms: Advertising and Social, worldwide, 2.00 USDC, 100 renders, 30 days, ask each time). **Public photo:** after registering, the creator picks one of their three photos or takes a new one; it is face-matched against an attested reference photo, then published (or skipped: unlisted, with a silhouette). Resumes from server and chain state; technical details in a collapsed panel |
+| `/brand/onboard` | Brands, three steps. **Sign in** as above. **Your company:** name, website, work email, logo, intended uses, expected volume; the **domain check** proves the work email (the sign-in email via Dynamic's signed session, or an emailed code with `RESEND_API_KEY`); the server shows **Verified domain** only when that email's domain matches the website, else **Unverified brand** (free email domains always). KYB is a labelled hook, not run. **Agree and fund:** the brand policy, signed by the wallet; USDC balance, address and the Circle faucet |
+| `/market`, `/market/[creator]` | Listed creators (verified, with a public photo) with their trust label, tags and terms. Signed out: photo, name, tags, uses, price and level. A signed-in brand with a completed profile also sees approved sample renders (1024 px, watermarked, short-lived signed URLs, rate limited). Requesting a licence needs a brand profile; creators see the brand's name, logo and badge before approving |
+| `/dashboard` | Creator: terms editor, pause, approve or decline requests (with the brand's badge), release photos per licence, revoke one or all, earnings, and the **Public profile** card: change or remove the photo, style tags, the listing switch, and sample renders (up to 4 preset scenes or a filtered prompt; the photos are released for that one request; each sample is approved or rejected, and can be removed later; 6 a day, paid by Likeness, no escrow). Brand: USDC, deposit, refund, delegation, renders |
 | `/generate` | Every check before the button; render, C2PA, `payRender` (delegated or from the wallet) |
-| `/verify` | Upload a file or paste its sha256: Licensed / Expired / Revoked / Unknown, with terms, creator and dates |
+| `/verify` | Upload a file or paste its sha256: Licensed / Expired / Revoked / Unknown, with terms, creator, licensee badge and dates; a creator's profile photo or a sample render is reported as such ("not a licence to use this face"), even after it was taken down |
 | `/status` | Each integration: configured or not, what it turns on, which variable; the four contracts for AI tools and verifiers |
 
 API routes live under [`web/app/api`](web/app/api). The server modules they call are in
@@ -259,6 +260,17 @@ cd indexer && pnpm test           # Envio handlers on the in-memory test indexer
   namespace isolation, envelope binding and licence release.
 - **Indexer** ([`indexer.test.ts`](indexer/src/indexer.test.ts)): a licence from registration to
   refund, plus revoke-all and suspension.
+
+## Roadmap
+
+Not built yet:
+
+- **Casting calls:** a brand posts a brief, and matching creators choose whether to reveal themselves to
+  that brand.
+- **"Casting calls only" mode:** a creator is never browsable in the marketplace, and only appears to
+  brands they choose to answer.
+- **Brand KYB:** business verification through Didit. A hook is in the brand profile (`kyb: "not-run"`),
+  and nothing claims it today.
 
 ## Deployments (Monad testnet, chain 10143)
 
