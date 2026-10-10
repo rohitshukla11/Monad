@@ -267,7 +267,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
             );
           })}
 
-          <article className="on-dark flex flex-col gap-3.5 rounded-[26px] bg-ink p-6 text-white">
+          <article id="terms" className="on-dark flex scroll-mt-6 flex-col gap-3.5 rounded-[26px] bg-ink p-6 text-white">
             <div className="flex items-center justify-between gap-2.5">
               <h3 className="m-0 text-[19px] font-semibold">Your terms</h3>
               <button type="button" onClick={() => setEditing(!editing)} aria-expanded={editing} className="min-h-11 rounded-full bg-lime px-[18px] font-semibold text-ink">

@@ -10,13 +10,14 @@ import { ALL_REGIONS, BANNED, CATEGORIES, REGIONS, isAllowedSet } from "@/lib/ca
 import { usdc, type Terms } from "@/lib/licensing";
 import { Button, Field, inputClass } from "./ui";
 
+/** A new creator's terms: Advertising and Social, worldwide, 2.00 USDC, 100 renders, 30 days, ask me each time. */
 export const STARTER_TERMS: Terms = {
   categories: (1 << 8) | (1 << 9),
   regions: ALL_REGIONS,
   maxDuration: BigInt(30 * 86_400),
   maxRenders: 100,
   pricePerRender: 2_000_000n,
-  autoApprove: true,
+  autoApprove: false,
 };
 
 export function validateTerms(t: Terms): string | null {

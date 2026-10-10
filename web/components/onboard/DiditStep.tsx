@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, reason } from "@/lib/client/tx";
 import { Button, Note } from "@/components/ui";
 import { LEVEL_SUMMARY } from "@/lib/verification";
+import { diditFailure } from "@/lib/didit-messages";
 
 type Status = {
   state: "none" | "pending" | "approved" | "declined";
@@ -84,7 +85,11 @@ export function DiditStep({ address, onDone }: { address: string; onDone: () => 
           )}
         </div>
       )}
-      {s === "declined" && <Note tone="down">Not verified: {status?.reasons?.join("; ")}</Note>}
+      {s === "declined" && (
+        <Note tone="down">
+          <b>{diditFailure(status?.reasons, status?.sessionStatus).title}.</b> {diditFailure(status?.reasons, status?.sessionStatus).help}
+        </Note>
+      )}
       {s === "approved" && (
         <Note tone="up">
           Verified by Didit{status?.environment === "sandbox" ? " (sandbox)" : ""}: 18 or over, liveness {status?.checks?.livenessMethod?.toLowerCase()} passed, face
