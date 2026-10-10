@@ -5,6 +5,8 @@
 **Live:** [www.likeness.site](https://www.likeness.site), running on Vercel against the Monad testnet
 contracts below.
 
+**On X:** [the Likeness post](https://x.com/RohitOnChain/status/2108857995010728445?s=20).
+
 Likeness is a likeness-licensing protocol on Monad, with a reference app on top:
 
 - **Creators** prove they are a real, live adult, capture an encrypted reference set of their face,
