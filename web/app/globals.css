@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens carried over from Whistle's landing palette (pre-existing, listed in the README):
+ * the dark ground/panel/surface ramp, text tints, the status colours, the two radii, the
+ * Unbounded + DM Sans pairing, tabular figures, the focus ring and the reduced-motion rule.
+ */
+@theme {
+  --color-ground: #101012;
+  --color-panel: #1b1b1f;
+  --color-surface: #232328;
+  --color-line: #34343b;
+  --color-line-soft: #2a2a30;
+  --color-text: #f3f3f5;
+  --color-muted: #c2c2c8;
+  --color-dim: #8c8c95;
+  --color-up: #8fe3b7;
+  --color-down: #ff7b72;
+  --color-warn: #f5e663;
+  --color-blue: #56a7e0;
+
+  --radius-panel: 36px;
+  --radius-card: 24px;
+
+  --font-display: var(--font-display-face), system-ui, sans-serif;
+  --font-sans: var(--font-body-face), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ground);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Addresses, hashes and amounts line up in columns. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
