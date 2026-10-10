@@ -22,7 +22,7 @@ export function WalletBadge() {
           <option value="">{dynamic === "ready" ? "My wallet" : "No wallet"}</option>
           {devWallets.map((w) => (
             <option key={w.address} value={w.address}>
-              DEV: {w.label}
+              {w.role === "brand" ? "Brand" : "Creator"}: {w.label}
             </option>
           ))}
         </select>
