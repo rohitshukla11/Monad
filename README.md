@@ -125,6 +125,10 @@ runs in the app with a Didit-verified creator.
 **Test brand.** With `DEV_WALLETS=1` in `.env.local`, the header picker can act as the test brand,
 Levis, marked DEV. The choice is per tab, so one tab can be the brand while another uses your own wallet.
 
+**Recording a demo.** The dev server shows no Next.js badge. `NEXT_PUBLIC_HIDE_DEV_OVERLAY=1` in
+`.env.local` also hides its issue toasts, which browser extensions such as wallet add-ons can trigger.
+It works in development only; remove it afterwards, because real errors are hidden too.
+
 **Indexer.** [`indexer/`](indexer) is an Envio HyperIndex for all four contracts.
 `cd indexer && pnpm install && pnpm local` runs it against Monad testnet with an embedded Postgres; no
 Docker is needed. Then set `ENVIO_PG_URL` in `web/.env.local`. Without an indexer, the app reads
