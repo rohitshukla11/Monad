@@ -1,4 +1,4 @@
-# Likeness (working name)
+# Likeness
 
 **Licence your face to AI, on your terms, and pull it back any time.**
 
@@ -139,19 +139,26 @@ history from cached RPC log scans; current state always comes from the contracts
 
 Step-by-step checks: [docs/local-checks.md](docs/local-checks.md).
 
+### Deploying
+
+The app deploys to Vercel with **Root Directory** `web`, private Blob storage (`STORE_DRIVER=blob`) and
+secrets passed as values. On serverless, render keys and matched capture digests live in one instance's
+memory, and the free-level face matcher is too large to deploy. See
+[docs/deploy-vercel.md](docs/deploy-vercel.md).
+
 ## App
 
 [`web/`](web) is a Next.js 16 app, the protocol's reference client.
 
 | Path | What it does |
 |---|---|
-| `/` | The protocol, its contracts and how a licence runs |
-| `/onboard` | Email sign-in and embedded wallet ([Dynamic](docs/dynamic.md)); passkey keys ([Mera](docs/mera.md)); signed consent → Didit (ID 18+, active liveness, selfie-to-ID face match) → three photos, each face-matched to the liveness selfie → terms → sealed reference set → attestation → `register` |
+| `/` | Landing: how a licence runs, measured numbers, real creators, and the call to become one |
+| `/onboard` | Three steps. **Sign in:** email creates the embedded wallet ([Dynamic](docs/dynamic.md)) and MON for gas arrives in the background. **Verify it's you:** signed consent, then Didit (ID 18+, liveness, selfie-to-ID face match). **Capture and protect:** three photos, each face-matched to the liveness selfie, then one button creates the passkey ([Mera](docs/mera.md)), seals the photos, gets the attestation and calls `register` |
 | `/market`, `/market/[creator]` | Registered creators with their trust label and terms; request a licence: auto-approved, or sent for the creator's EIP-712 signature |
 | `/dashboard` | Creator: terms editor, pause, approve or decline requests, release photos per licence, revoke one or all, earnings. Brand: USDC, deposit, refund, delegation, renders |
 | `/generate` | Every check before the button; render, C2PA, `payRender` (delegated or from the wallet) |
 | `/verify` | Upload a file or paste its sha256: Licensed / Expired / Revoked / Unknown, with terms, creator and dates |
-| `/status` | Each integration: configured or not, what it turns on, which variable |
+| `/status` | Each integration: configured or not, what it turns on, which variable; the four contracts for AI tools and verifiers |
 
 API routes live under [`web/app/api`](web/app/api). The server modules they call are in
 [`web/lib/server`](web/lib/server): `generate`, `verify`, `keyring`, `delegation`, `filter`, `render/*`,
@@ -459,16 +466,19 @@ Built from scratch during the hackathon, except:
   v5.7.0 and [forge-std](https://github.com/foundry-rs/forge-std) v1.17.0, pinned as git submodules.
 - **Libraries:** the app's dependencies are pinned in [`web/package.json`](web/package.json), and the
   indexer's in [`indexer/package.json`](indexer/package.json).
-- **Design (from the team's earlier project, Whistle):**
-  - the landing-page colour tokens (ground, panel, surface, line, text, muted, dim, up, down, warn,
-    blue);
-  - the two corner radii;
-  - the Unbounded + DM Sans font pairing;
-  - the tabular-figures utility;
-  - the focus ring and the reduced-motion rule.
+- **Design:** the web app follows the team's design mockups (Main, Marketplace, Dashboard and
+  Verify), rebuilt as Next.js components:
+  - the palette, the Unbounded + Poppins pairing, the radii and the motion are tokens in
+    [`web/app/globals.css`](web/app/globals.css);
+  - the shared components (pills, cards, hero, panel, icons, reveal and count-up hooks) are in
+    [`web/components/ds/`](web/components/ds/);
+  - screenshots of every page, at 1440 and 390 px, as a creator and as a brand, are in
+    [`docs/screens/redesign/`](docs/screens/redesign/).
 
-  They are in [`web/app/globals.css`](web/app/globals.css). No Whistle application or contract code is
-  reused.
+  An earlier version used colour token names, a font pairing and a focus-ring rule from the team's
+  earlier project, Whistle. The old token names (ground, panel, line, text, muted and so on) still
+  exist, mapped onto the new palette, so older components keep rendering; no Whistle colours,
+  application or contract code remain.
 
 ## Licence
 

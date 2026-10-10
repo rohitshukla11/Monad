@@ -24,35 +24,36 @@ pnpm dev          # http://localhost:3000
 ## 1. Email sign-in to an embedded wallet on Monad testnet
 
 1. Open `http://localhost:3000/onboard`.
-2. Under **Your wallet**, enter your email and choose **Email me a code**.
-3. Enter the 6-digit code and choose **Verify**.
-4. Choose **Create my wallet**.
+2. In step 1, **Sign in**, enter your email and choose **Email me a code**.
+3. Enter the 6-digit code and choose **Verify**. The wallet is created as you sign in; there is no
+   separate button.
 
-**Expected:** an address appears, the network reads `Monad testnet (10143)`, and the address links to
-MonadVision.
+**Expected:** the flow moves to step 2, **Verify it's you**. Open **Details**: the wallet address links
+to MonadVision, and the network reads `Monad testnet (10143)`.
 
 ## 2. MON drip on a fresh wallet
 
-1. With the new wallet from check 1, choose **Get MON for gas**.
+1. Signing in with a new wallet in check 1 requests the drip in the background, once.
 
-   **Expected:** "Sent 0.5 MON" with a transaction link, and the balance shows `0.5 MON`. The `pnpm dev`
-   terminal prints one JSON log line with `"result":"sent"`.
-2. Choose **Get MON for gas** again.
+   **Expected:** in **Details**, **Gas drip** shows a transaction link, and **Balance** shows `0.5 MON`
+   once it confirms. The `pnpm dev` terminal prints one JSON log line with `"result":"sent"`.
+2. Ask again by hand:
+   `curl -s -X POST localhost:3000/api/drip -d '{"address":"<your wallet>"}'`.
 
-   **Expected:** "only new, empty wallets get a drip" and a `"refused-not-new"` log line.
+   **Expected:** `{"error":"only new, empty wallets get a drip"}` and a `"refused-not-new"` log line.
 
 ## 3. Cross-browser passkey test (Safari, then Chrome, using one iCloud Keychain passkey)
 
 This needs no sign-in. Run both browsers on the same Mac, signed in to iCloud with Keychain on.
 
-1. **In Safari**, open `http://localhost:3000/onboard`.
+1. **In Safari**, open `http://localhost:3000/onboard` and open **Details**.
    1. In **Your keys**, choose **Create passkey** and approve with Touch ID or your password. Safari
       saves it to iCloud Keychain.
    2. Note the **Key fingerprint**.
    3. Type a note, then choose **Encrypt and store**.
 
    **Expected:** "Stored. Only ciphertext left this browser."
-2. **In Chrome** (version 132 or later), open `http://localhost:3000/onboard`.
+2. **In Chrome** (version 132 or later), open `http://localhost:3000/onboard` and open **Details**.
    1. Choose **Use my existing passkey**.
    2. In Chrome's passkey dialog, pick the **iCloud Keychain** passkey, not one saved in the Chrome
       profile. Chrome's own profile passkeys have no PRF support.
@@ -83,33 +84,37 @@ Both workflows run OCR (minimum age 18, decline below), then liveness, then FACE
 
 On `/onboard`:
 
-1. Sign in, create the wallet, get MON for gas, and create the passkey (**Your keys**).
-2. In **Verify and register**, choose **Start**. Read the consent, tick the box, and choose **Sign my
-   consent**.
-3. Choose **Start verification**. Didit opens in a new tab.
+1. Sign in (step 1). The wallet and its gas arrive on their own.
+2. In step 2, **Verify it's you**, read the consent, tick the box, and choose **Agree and start
+   verification**. Your wallet signs the consent, and Didit opens in a new tab.
+3. If the tab was closed, choose **Reopen the Didit verification**.
    - At `full`, scan its QR code and finish on your phone.
    - At `free`, you can use the computer's camera.
 
    Either way, you show your ID document and do the liveness check. The onboarding page polls our server,
    which reads Didit's decision.
-4. Take the three guided photos. Each is face-matched to your liveness selfie.
-5. Set your terms and choose **Encrypt my photos and register**.
+4. In step 3, **Capture and protect**, take the three guided photos. Each is face-matched to your
+   liveness selfie.
+5. Optionally open **Adjust your terms**, then choose **Protect with Face ID and register**. This
+   creates your passkey (tick **I already have a Likeness passkey on this device** to reuse one),
+   encrypts the photos under it, gets the attestation and registers.
 
-**Expected:** "Attested: provider didit, liveness didit:passive" (or `didit:active` at `full`), then a
-`register` transaction on MonadVision. The marketplace then shows your creator as **Verified**, with
+**Expected:** "Attested by the platform (didit:passive)" (or `didit:active` at `full`), then "You're a
+registered, verified creator". **Details** shows the key fingerprint and the `register` transaction on
+MonadVision. The marketplace then shows your creator as **Verified**, with
 a **passive liveness** or **active liveness** badge.
 
 ### Re-verify at a higher level
 
 Once registered at `free`, set `VERIFICATION_LEVEL=full` (and add Didit credit). Then, on `/dashboard`:
 
-1. In **Verification**, choose **Re-verify at a higher level (full)**.
+1. On the violet **Verification** card, choose **Re-verify at full level**.
 2. Sign the consent.
 3. Complete Didit's session on your phone.
 4. Choose **Re-check my photos and upgrade**. Your passkey opens your sealed photos in the browser.
 
 **Expected:** "Upgrade attested: liveness didit:active", then an `updateAttestation` transaction. The
-badge changes to **active liveness**, and the profile shows "upgraded to this level on …". Re-verifying
+badge changes to **active liveness**, and the creator profile shows "Upgraded …" under **Verified**. Re-verifying
 at `free` after that is refused.
 
 ## 5. The whole protocol in one command (no credentials needed)
@@ -143,7 +148,8 @@ You need:
 
 1. **Tab B, brand:** in the header picker, choose **DEV: Test brand**. Go to **Marketplace**, open your
    creator, and request a licence. With manual terms, it goes to the creator.
-2. **Tab A, creator:** on **Dashboard**, under **Requests waiting for you**, choose **Approve**.
+2. **Tab A, creator:** on **Dashboard**, the lime card shows the oldest request waiting. Choose
+   **Approve**.
 3. **Tab B:** under **Your requests to this creator**, choose **Issue licence on chain**.
 4. **Tab A:** on the licence, choose **Release photos to renderer** (passkey).
 5. **Tab B:** on **Dashboard**, deposit USDC. Then, on **Generate**, render with **Confirm payRender in my
@@ -154,7 +160,7 @@ You need:
 
 Open `/verify` and drop `web/.data/demo-fork/demo-output/*render-0.jpg`.
 
-**Expected:** **Unknown**, because the receipt exists only on the fork. The manifest panel still shows
+**Expected:** **Unknown**, because the receipt exists only on the fork. The **Content credential (C2PA)** panel still shows
 a valid signature, the test-certificate warning, the claimed licence and the TEST RENDER label. Files
 rendered on testnet verify as Licensed, or as Revoked after a revoke.
 
@@ -168,5 +174,5 @@ pnpm local            # embedded Postgres + envio start, no Docker
 
 Set `ENVIO_PG_URL=postgres://postgres:testing@localhost:5433/envio-dev` in `web/.env.local`.
 
-**Expected:** `/market` says "listed from the Envio indexer", and `/status` shows Envio as configured.
+**Expected:** `/market` says "from the Envio indexer" above the creator cards, and `/status` shows Envio as configured.
 Without `ENVIO_API_TOKEN` the indexer syncs over the public RPC at its 50 requests-per-second limit.

@@ -25,7 +25,7 @@ Until then the app says it is off, and nothing is attributed to Dynamic that Dyn
 
 | Piece | Code | State |
 |---|---|---|
-| Email OTP sign-in and WaaS EVM embedded wallet on Monad testnet | [`WalletPanel.tsx`](../web/components/WalletPanel.tsx), [`WalletProvider.tsx`](../web/components/wallet/WalletProvider.tsx) | Built; needs `NEXT_PUBLIC_DYNAMIC_ENV_ID` |
+| Email OTP sign-in and WaaS EVM embedded wallet on Monad testnet | [`OnboardFlow.tsx`](../web/components/onboard/OnboardFlow.tsx) (step 1), [`WalletProvider.tsx`](../web/components/wallet/WalletProvider.tsx) | Built; needs `NEXT_PUBLIC_DYNAMIC_ENV_ID` |
 | Monad testnet as a custom network (`transformers.networksData`) | [`providers.tsx`](../web/app/providers.tsx) | Built |
 | One-time MON drip to new embedded wallets | [`drip.ts`](../web/lib/server/drip.ts) | Built and funded |
 | Brand delegates its embedded wallet to the render service: `delegateWaasKeyShares` with an `initialSignerRules` allow rule | [`Delegation.tsx`](../web/components/dashboard/Delegation.tsx) | Built; needs the delegation credentials below |
