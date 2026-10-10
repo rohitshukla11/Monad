@@ -507,6 +507,9 @@ function VerifyStep({ wallet, consented, didit, onConsent, onDidit }: { wallet: 
 
 // ---------------------------------------------------------------- 3. protect your photos
 
+const MATCHER_OFF =
+  "This server can't check photos at the free verification level: its local face matcher isn't installed (on Vercel it is too large to deploy). Registration can't finish here until the server runs at the full level, where Didit matches the photos.";
+
 function passkeyError(e: unknown): string {
   if (isMeraError(e)) {
     if (e.code === "PRF_UNAVAILABLE")
@@ -541,6 +544,14 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
   thumbsRef.current = thumbs;
   useEffect(() => () => thumbsRef.current.forEach((t) => t && URL.revokeObjectURL(t)), []);
 
+  // At the free level the photos are matched on this server; say so up front if it can't.
+  const [matcherOff, setMatcherOff] = useState(false);
+  useEffect(() => {
+    api<{ verificationLevel: string; integrations: { key: string; configured: boolean }[] }>("/api/status")
+      .then((st) => setMatcherOff(st.verificationLevel === "free" && st.integrations.some((i) => i.key === "face-models" && !i.configured)))
+      .catch(() => {});
+  }, []);
+
   const allMatched = states.every((s) => s === "ok");
   // The camera's next photo: the first one not taken yet, else one that failed to match.
   const active = (() => {
@@ -559,12 +570,25 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
       await api("/api/captures/verify", { method: "POST", body: JSON.stringify({ address: wallet.address, captures: b64, auth }) });
       setStates(["ok", "ok", "ok"]);
     } catch (e) {
-      // The server checks the photos in order and names the first that fails ("photo 2 …").
+      // The server checks the photos in order and names the first that fails ("photo 2 …"). Only a
+      // problem with that photo itself is a retake; anything else (the matcher unavailable, Didit or
+      // the network down) is shown as it is, with all three photos kept.
       const text = reason(e);
-      const n = Number(/photo (\d)/.exec(text)?.[1] ?? 0);
-      if (n >= 1 && n <= 3) {
+      const n = Number(/^photo (\d)/.exec(text)?.[1] ?? 0);
+      const photoProblem = /does not match|no face found in the photo|the photo shows more than one face/.test(text);
+      if (n >= 1 && n <= 3 && photoProblem) {
+        const name = ["front", "slight left", "slight right"][n - 1];
         setStates(all.map((_, i) => (i < n - 1 ? "ok" : i === n - 1 ? "failed" : "taken")));
-        setMatchError(`The ${["front", "slight left", "slight right"][n - 1]} photo didn't match your selfie. Retake just that one; the others are kept.`);
+        setMatchError(
+          /no face found/.test(text)
+            ? `We couldn't find a face in the ${name} photo. Retake it with your face inside the outline.`
+            : /more than one face/.test(text)
+              ? `The ${name} photo shows more than one face. Retake it on your own.`
+              : `The ${name} photo didn't match your selfie. Retake just that one; the others are kept.`,
+        );
+      } else if (/models missing/.test(text)) {
+        setStates(["taken", "taken", "taken"]);
+        setMatchError(MATCHER_OFF);
       } else {
         setStates(["taken", "taken", "taken"]);
         setMatchError(text);
@@ -646,6 +670,7 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
         </p>
       </div>
 
+      {matcherOff && <Note tone="down">{MATCHER_OFF}</Note>}
       {!sealed.current && <CaptureStep active={allMatched || checking || active < 0 ? null : active} states={states} thumbs={thumbs} busy={checking} cameraOn={!allMatched} onCapture={capture} />}
       {matchError && (
         <p role="alert" className="m-0 text-[15px] text-bad">
