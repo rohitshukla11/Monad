@@ -10,6 +10,8 @@
 # ------------------------------------------------ biometric data: never committed, never at rest in plaintext
 captures/
 *.reference/
+# ...except the API route that checks them (code, holds no images)
+!web/app/api/captures/
 
 # ------------------------------------------------ dependencies and build output
 node_modules/
