@@ -24,7 +24,13 @@ export function pub(): PublicClient {
   const url = rpcUrl();
   let c = clients.get(url);
   if (!c) {
-    c = createPublicClient({ chain: serverChain(), transport: http(url, { retryCount: 3 }) }) as PublicClient;
+    // Contract reads issued together go out as one Multicall3 call, and retries back off: the public
+    // Monad RPC allows about 15 requests a second.
+    c = createPublicClient({
+      chain: serverChain(),
+      batch: { multicall: { wait: 16 } },
+      transport: http(url, { retryCount: 5, retryDelay: 400 }),
+    }) as PublicClient;
     clients.set(url, c);
   }
   return c;

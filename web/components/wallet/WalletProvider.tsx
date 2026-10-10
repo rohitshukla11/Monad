@@ -25,7 +25,8 @@ export type ActiveWallet = {
   devSecret?: string;
 };
 
-export type DevWallet = { role: "creator" | "brand"; label: string; address: Address; key: `0x${string}`; devSecret?: string };
+/** `key` absent: a read-only view of that address (screenshots, demos); anything that signs fails. */
+export type DevWallet = { role: "creator" | "brand"; label: string; address: Address; key?: `0x${string}`; devSecret?: string };
 
 type Ctx = {
   wallet: ActiveWallet | null;
@@ -39,7 +40,7 @@ export const useWallet = () => useContext(WalletCtx);
 const DEV_CHOICE = "likeness:dev-wallet";
 
 function devClient(w: DevWallet): ActiveWallet {
-  const client = createWalletClient({ account: privateKeyToAccount(w.key), chain: monadTestnet, transport: http() });
+  const client = createWalletClient({ account: w.key ? privateKeyToAccount(w.key) : w.address, chain: monadTestnet, transport: http() }) as WalletClient<Transport, Chain, Account>;
   return { kind: "dev", address: w.address, label: w.label, client, devSecret: w.devSecret };
 }
 

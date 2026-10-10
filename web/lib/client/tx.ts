@@ -7,7 +7,7 @@ import { createPublicClient, http, type Abi, type ContractFunctionArgs, type Con
 import { monadTestnet } from "@/lib/chain";
 import type { ActiveWallet } from "@/components/wallet/WalletProvider";
 
-export const browserPub = createPublicClient({ chain: monadTestnet, transport: http() });
+export const browserPub = createPublicClient({ chain: monadTestnet, batch: { multicall: { wait: 16 } }, transport: http(undefined, { retryCount: 5, retryDelay: 400 }) });
 
 export async function write<const abi extends Abi, fn extends ContractFunctionName<abi, "nonpayable" | "payable">>(
   wallet: ActiveWallet,
@@ -28,6 +28,8 @@ export async function write<const abi extends Abi, fn extends ContractFunctionNa
 /** Pull a contract's custom error name out of a viem error, for a readable message. */
 export function reason(e: unknown): string {
   const err = e as { shortMessage?: string; message?: string; cause?: { data?: { errorName?: string } } };
+  const text = `${err.shortMessage ?? ""} ${err.message ?? ""}`;
+  if (/limited to \d+\/sec|429|rate limit/i.test(text)) return "The Monad testnet RPC is busy (rate limited). Wait a moment and try again.";
   const name = err.cause?.data?.errorName;
   return name ? `${name}${err.shortMessage ? ` (${err.shortMessage})` : ""}` : (err.shortMessage ?? err.message ?? String(e));
 }
