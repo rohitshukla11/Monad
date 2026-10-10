@@ -3,8 +3,7 @@
 **Licence your face to AI, on your terms, and pull it back any time.**
 
 **Live:** [www.likeness.site](https://www.likeness.site), running on Vercel against the Monad testnet
-contracts below. See what that deployment has configured at
-[/status](https://www.likeness.site/status).
+contracts below.
 
 Likeness is a likeness-licensing protocol on Monad, with a reference app on top:
 
@@ -495,48 +494,6 @@ what is live.
 | Renders and the LLM prompt filter (Google Gemini) | `GEMINI_API_KEY` (optional: `GEMINI_IMAGE_MODEL`, `GEMINI_FILTER_MODEL`); **billing on the key's Google Cloud project** for the image model | A TEST RENDER, and "LLM filter not configured": local rules only |
 | Envio via HyperSync | `ENVIO_API_TOKEN` in `indexer/.env` | The indexer syncs over RPC, more slowly |
 | Testnet `payRender` in `pnpm demo` | Circle testnet USDC in the demo funder (`0x68343Aa0…10f2`) or the test brand (Levis) | `pnpm demo --fork` |
-
-## AI tool disclosure
-
-This project was built with an AI coding assistant, **Claude Code (Anthropic), running Claude Opus
-5.5**, working under the team's direction. The team set the product and the rules: no plaintext
-biometrics, banned categories on chain, never faking a pass, and keeping real and stubbed parts
-honestly apart. The team also approved the plan and the build order. The assistant researched the
-official docs, wrote the code and tests, ran them, and deployed and seeded on testnet.
-
-| Area | Written by | Reviewed by the team |
-|---|---|---|
-| Plan, research and doc citations | AI assistant | Plan approved |
-| Contracts (`contracts/src`) | AI assistant | Pending |
-| Contract tests, invariant suite, deploy script | AI assistant | Pending |
-| Crypto library and tests (`web/lib/crypto`) | AI assistant | Pending |
-| Onboarding, wallet and keys panels, vault and drip routes (Days 2–3) | AI assistant | Pending |
-| Licensing, key release, delegation, render pipeline, C2PA, verifier, dashboards (Days 4–6) | AI assistant | Pending |
-| Envio indexer (`indexer/`) | AI assistant | Pending |
-| Demo and seed scripts, fork lifecycle test | AI assistant | Pending |
-| README and docs | AI assistant | Pending |
-
-This table is updated as the team reviews each part.
-
-## Pre-existing code
-
-Built from scratch during the hackathon, except:
-
-- **Libraries:** [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts)
-  v5.7.0 and [forge-std](https://github.com/foundry-rs/forge-std) v1.17.0, pinned as git submodules.
-- **Libraries:** the app's dependencies are pinned in [`web/package.json`](web/package.json), and the
-  indexer's in [`indexer/package.json`](indexer/package.json).
-- **Design:** the web app follows the team's design mockups (Main, Marketplace, Dashboard and
-  Verify), rebuilt as Next.js components:
-  - the palette, the Unbounded + Poppins pairing, the radii and the motion are tokens in
-    [`web/app/globals.css`](web/app/globals.css);
-  - the shared components (pills, cards, hero, panel, icons, reveal and count-up hooks) are in
-    [`web/components/ds/`](web/components/ds/).
-
-  An earlier version used colour token names, a font pairing and a focus-ring rule from the team's
-  earlier project, Whistle. The old token names (ground, panel, line, text, muted and so on) still
-  exist, mapped onto the new palette, so older components keep rendering; no Whistle colours,
-  application or contract code remain.
 
 ## Licence
 
