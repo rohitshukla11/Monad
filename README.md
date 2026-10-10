@@ -114,13 +114,13 @@ pnpm dev                       # http://localhost:3000
 
 ```sh
 pnpm demo --fork   # local anvil fork of Monad testnet: real contracts, Circle's real USDC contract
-pnpm seed          # Monad testnet: the render agent, and a test brand wallet with gas
+pnpm seed          # Monad testnet: the render agent, and the test brand wallet (Levis) with gas
 ```
 
 On the fork, the demo:
 
 - registers a throwaway creator (attestation provider `dev-unverified`, synthetic drawings for photos);
-- funds a test brand with USDC;
+- funds the test brand (Levis) with USDC;
 - creates a licence, deposits, and releases the key;
 - runs two renders and verifies one file;
 - revokes, shows the next render refused and the file now "licensed when made, since revoked", and
@@ -130,7 +130,7 @@ It prints every transaction hash. That test creator exists only on the fork. On 
 runs in the app with a Didit-verified creator.
 
 **Test brand.** With `DEV_WALLETS=1` in `.env.local`, the header picker can act as the test brand,
-marked DEV. The choice is per tab, so one tab can be the brand while another uses your own wallet.
+Levis, marked DEV. The choice is per tab, so one tab can be the brand while another uses your own wallet.
 
 **Indexer.** [`indexer/`](indexer) is an Envio HyperIndex for all four contracts.
 `cd indexer && pnpm install && pnpm local` runs it against Monad testnet with an embedded Postgres; no
@@ -232,34 +232,38 @@ cd indexer && pnpm test           # Envio handlers on the in-memory test indexer
 
 ## Deployments (Monad testnet, chain 10143)
 
-Deployed 2026-10-05 (UTC) from `0x68343Aa0598b7FCAA102769D172e59cdDfae10f2`. All four contracts are
-verified on Sourcify (MonadVision). `ReceiptAnchor` is an exact match; the others are a `match`
-(bytecode identical, metadata hash differs). Machine-readable:
-[`deployments/monad-testnet.json`](deployments/monad-testnet.json).
+Deployed 2026-10-10 (UTC) from `0x68343Aa0598b7FCAA102769D172e59cdDfae10f2`, starting at block
+69,778,020. All four contracts are verified on Sourcify (MonadVision) as exact matches.
+Machine-readable: [`deployments/monad-testnet.json`](deployments/monad-testnet.json).
+
+This deployment replaces the one from 2026-10-05. Creators, licences, escrow balances and receipts on
+the old contracts are not carried over: no creator is registered on these contracts yet.
 
 | Contract | Address | Deploy tx |
 |---|---|---|
-| CreatorRegistry | [`0x680A55c0Db4B44def9d88cCBF450C1f5dd37fd9a`](https://testnet.monadvision.com/address/0x680A55c0Db4B44def9d88cCBF450C1f5dd37fd9a) | [`0x7ff23bdd…`](https://testnet.monadvision.com/tx/0x7ff23bdd2ff2a4c7d1826cd61ddc5ff301bf32c70e6a1fec7f9abbb5c9833e4f) |
-| LicenseRegistry | [`0x87934d5E1A61be3Bb06FE54AC7e21E7704731d1C`](https://testnet.monadvision.com/address/0x87934d5E1A61be3Bb06FE54AC7e21E7704731d1C) | [`0xa259fc3a…`](https://testnet.monadvision.com/tx/0xa259fc3abc96c6d94e5cc1a0058ab7968e6ee5875022ba586ca622649c443b6e) |
-| ReceiptAnchor | [`0xE33Dc788C060cb77F79A2AFF96Ca685f6C018721`](https://testnet.monadvision.com/address/0xE33Dc788C060cb77F79A2AFF96Ca685f6C018721) | [`0x01b8044a…`](https://testnet.monadvision.com/tx/0x01b8044adb68cc5d7ce3ea0cdc7a2a06907f19fc8a5720d3ecefe8ff5b2ee4aa) |
-| LicenseEscrow | [`0x38703a57c5f8eB2F8d1576A3d2B4B35A10D66FA6`](https://testnet.monadvision.com/address/0x38703a57c5f8eB2F8d1576A3d2B4B35A10D66FA6) | [`0x102546c7…`](https://testnet.monadvision.com/tx/0x102546c7462535ac715bb6b33af0f158be0b38a34f913df2357d1602b4209a9d) |
+| CreatorRegistry | [`0xe96FB286F36372EffCF846F8a0d25773D63A3618`](https://testnet.monadvision.com/address/0xe96FB286F36372EffCF846F8a0d25773D63A3618) | [`0x9606b01e…`](https://testnet.monadvision.com/tx/0x9606b01e9db88c2251d616fce038efee2db90b42ee2e3f7557074f3d994d1d85) |
+| LicenseRegistry | [`0x69e3A6856ef324205D67CAA4F16220436f324f45`](https://testnet.monadvision.com/address/0x69e3A6856ef324205D67CAA4F16220436f324f45) | [`0x8b60e5cb…`](https://testnet.monadvision.com/tx/0x8b60e5cb22830ee262fa537851154ae07d13ebf65df487c6743a02e517af83e0) |
+| ReceiptAnchor | [`0xF65313C01b2E252bedfd79cAB266Fab2b14D4C1f`](https://testnet.monadvision.com/address/0xF65313C01b2E252bedfd79cAB266Fab2b14D4C1f) | [`0x3c14b92a…`](https://testnet.monadvision.com/tx/0x3c14b92a95cb610ca790b23f0a73b21c32c8c96b04dadbb4f96beebd4f004800) |
+| LicenseEscrow | [`0xB72a55D7181A1605FCB70a665e4B408992169201`](https://testnet.monadvision.com/address/0xB72a55D7181A1605FCB70a665e4B408992169201) | [`0x444f2bf8…`](https://testnet.monadvision.com/tx/0x444f2bf8e0cac47852e9664fbb30e48ccd50af2b00e9d98b463feaf7a604e82b) |
 | USDC (Circle) | [`0x534b2f3A21130d7a60830c2Df862319e593943A3`](https://testnet.monadvision.com/address/0x534b2f3A21130d7a60830c2Df862319e593943A3) | [Circle docs](https://developers.circle.com/stablecoins/usdc-contract-addresses) |
 
 Wiring transactions:
 
-- `LicenseRegistry.setEscrow`: [`0xa09d4351…`](https://testnet.monadvision.com/tx/0xa09d43517ff7228662304046c5c6fc5bfff85940110a2b8ae06e4bf7baa8c373)
-- `ReceiptAnchor.setEscrow`: [`0x22bf5160…`](https://testnet.monadvision.com/tx/0x22bf5160c02d4bdeaaf902dbe0a2d56665e410683855fa2b51aba790f2068d61)
-- `LicenseEscrow.setRenderAgent` (deployer): [`0x5b789333…`](https://testnet.monadvision.com/tx/0x5b7893332ebfad9aa08ad87078d3a315705954ccffb0478165375081359aba5e)
-- `LicenseEscrow.setRenderAgent` (dedicated render-agent key `0x87CA75118FD0C7EF3090c82E8df4CF4b56cD03cA`): [`0x682b6cf8…`](https://testnet.monadvision.com/tx/0x682b6cf831d0ac83e969ab48bc824aeda97587b6f672973ed557b3ac81090979)
+- `LicenseRegistry.setEscrow`: [`0x4a23e561…`](https://testnet.monadvision.com/tx/0x4a23e5614ab3fd317c9433ef1f13bef67fd1d185b6f373a81a0e241ab80c7326)
+- `ReceiptAnchor.setEscrow`: [`0x08cd278a…`](https://testnet.monadvision.com/tx/0x08cd278ac6ea0d7be1b12f4fc899234c731155f5be7d9e9adee5fdd95ebdbf29)
+- `LicenseEscrow.setRenderAgent` (render-agent key `0x87CA75118FD0C7EF3090c82E8df4CF4b56cD03cA`): [`0x179fb500…`](https://testnet.monadvision.com/tx/0x179fb500edb514f3964a13861a4f3d9d12fe923365a4b00b9b573df749afc8bc)
 
 Roles:
 
 - **Attester:** `0x8d53e13407890e18022bfAa413193ba4C6DCc1a5`.
-- **Render agents:** `0x87CA75118FD0C7EF3090c82E8df4CF4b56cD03cA`, the render service's local key
-  (`RENDER_AGENT_KEY_FILE`). The deployer is also still registered. It moves to a Dynamic server
-  wallet with `pnpm agent:dynamic` once `DYNAMIC_API_KEY` is set.
-- **Treasury:** the deployer.
+- **Render agent:** `0x87CA75118FD0C7EF3090c82E8df4CF4b56cD03cA`, the render service's local key
+  (`RENDER_AGENT_KEY_FILE`). It moves to a Dynamic server wallet with `pnpm agent:dynamic` once
+  `DYNAMIC_API_KEY` is set.
+- **Treasury and owner:** the deployer.
 - **Fee:** 10%.
+
+**Test brand.** Levis (`0x41083F240E968C4A37A39404d40f1c68210e5B9f`), a DEV wallet for testing
+brand flows, holding Circle testnet USDC. The name is a test label only.
 
 An earlier unverified test creator (`0xB6f4…0e21`, provider `dev-unverified`) was suspended by the
 owner on 2026-10-10 ([`0xc2453bfb…`](https://testnet.monadvision.com/tx/0xc2453bfb78a2d217d46ad148e85ec9691bda8f62983dbb560aa10a5c02803916)).
@@ -468,7 +472,7 @@ what is live.
 | Creator verification (Didit: ID 18+, liveness, face match) | `DIDIT_API_KEY`, `VERIFICATION_LEVEL` (`free` or `full`), `DIDIT_WORKFLOW_ID_FREE`, `DIDIT_WORKFLOW_ID_FULL` (optional `DIDIT_WEBHOOK_SECRET`); `full` needs **Didit credit**; `free` needs `pnpm face:models` | "Liveness not configured and ID check not performed"; no creator can be verified |
 | Renders and the LLM prompt filter (Google Gemini) | `GEMINI_API_KEY` (optional: `GEMINI_IMAGE_MODEL`, `GEMINI_FILTER_MODEL`); **billing on the key's Google Cloud project** for the image model | A TEST RENDER, and "LLM filter not configured": local rules only |
 | Envio via HyperSync | `ENVIO_API_TOKEN` in `indexer/.env` | The indexer syncs over RPC, more slowly |
-| Testnet `payRender` in `pnpm demo` | Circle testnet USDC in the demo funder (`0x68343Aa0…10f2`) or the test brand | `pnpm demo --fork` |
+| Testnet `payRender` in `pnpm demo` | Circle testnet USDC in the demo funder (`0x68343Aa0…10f2`) or the test brand (Levis) | `pnpm demo --fork` |
 
 ## AI tool disclosure
 

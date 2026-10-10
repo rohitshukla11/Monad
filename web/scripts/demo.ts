@@ -155,7 +155,7 @@ async function main() {
   let seeded: { note: string; wallets: DevW[] } | null = existsSync(walletsFile) ? JSON.parse(readFileSync(walletsFile, "utf8")) : null;
   if (!seeded) {
     const brandKey = generatePrivateKey();
-    seeded = { note: "DEV ONLY: throwaway test wallets.", wallets: [{ role: "brand", label: "Test brand", address: privateKeyToAccount(brandKey).address, key: brandKey }] };
+    seeded = { note: "DEV ONLY: throwaway test wallets.", wallets: [{ role: "brand", label: "Levis", address: privateKeyToAccount(brandKey).address, key: brandKey }] };
   }
   // A test creator only ever exists on the fork; on Monad testnet any old one is dropped from the file.
   seeded.wallets = seeded.wallets.filter((w) => w.role !== "creator" || FORK);
@@ -274,7 +274,7 @@ async function main() {
   // ------------------------------------------------------------ licence
   head("5. Licence (auto-approved inside the creator's terms)");
   const { saveBrief } = await import("@/lib/server/requests");
-  const brief = { brand: "Test brand", campaign: `Demo ${new Date().toISOString().slice(0, 16)}`, use: "Two social posts (TEST RENDER)" };
+  const brief = { brand: "Levis", campaign: `Demo ${new Date().toISOString().slice(0, 16)}`, use: "Two social posts (TEST RENDER)" };
   await saveBrief(brief);
   const req = { creator: C.address, category: 1 << 9, regions: 1 | 4, duration: 7n * 86_400n, renderCap: RENDERS + 2, pricePerRender: PRICE, purposeHash: purposeHash(brief), deadline: 0n, salt: toHex(crypto.getRandomValues(new Uint8Array(32))) };
   const reqHash = await send("request licence", brand, { address: deployment.LicenseRegistry!, abi: LicenseRegistryAbi, functionName: "request", args: [req, "0x"] });
