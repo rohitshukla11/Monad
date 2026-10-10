@@ -22,6 +22,7 @@
   --color-lime: #dcf37b;
   --color-lime-deep: #c9e35f;
   --color-violet: #8b5cf6; /* white text only at 24px+ */
+  --color-violet-deep: #6d3fe0; /* violet surfaces with small white text: 6.1:1 */
   --color-violet-soft: #ede5ff;
   --color-sky: #cfe6f5;
   --color-sky-soft: #e2f0f9;

@@ -166,7 +166,7 @@ function Stats() {
                 <Silhouette fill="#C27A92" width={82} height={96} />
               </span>
             </div>
-            <span className="mt-auto self-start rounded-full bg-violet px-3.5 py-1.5 text-[13px] font-semibold text-white">For brands</span>
+            <span className="mt-auto self-start rounded-full bg-violet-deep px-3.5 py-1.5 text-[13px] font-semibold text-white">For brands</span>
             <h3 className="m-0 font-display text-[clamp(20px,2.4vw,26px)] font-extrabold">VERIFIED HUMANS ONLY</h3>
             <p className="m-0 max-w-[460px] text-[15px] leading-relaxed text-[#3E4148]">
               Every creator passed an ID check, a liveness selfie and a face match. Their photos were captured live, so nobody can license a face that

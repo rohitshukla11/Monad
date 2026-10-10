@@ -160,7 +160,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
             type="button"
             onClick={() => canUpgrade && setReverify(true)}
             aria-disabled={!canUpgrade}
-            className={`relative flex flex-col gap-1.5 overflow-hidden rounded-[26px] bg-violet p-6 text-left text-white ${canUpgrade ? "cursor-pointer" : "cursor-default"}`}
+            className={`relative flex flex-col gap-1.5 overflow-hidden rounded-[26px] bg-violet-deep p-6 text-left text-white ${canUpgrade ? "cursor-pointer" : "cursor-default"}`}
           >
             <CardRings stroke="#FFFFFF" opacity={0.35} />
             <span className="relative text-[15px] text-violet-soft">Verification</span>
