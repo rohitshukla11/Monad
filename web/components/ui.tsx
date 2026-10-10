@@ -7,14 +7,14 @@ import type { ReactNode } from "react";
 import { explorer } from "@/lib/chain";
 import type { LicenceStatus, Trust } from "@/lib/licensing";
 import { LIVENESS_NOTE } from "@/lib/verification";
-import { pillClass, StatusPill, type PillKind } from "./ds";
+import { btnClass, StatusPill, type PillKind } from "./ds";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-[26px] bg-white p-6 text-[15px] text-ink sm:p-7 ${className}`}>{children}</section>;
+  return <section className={`rounded-[20px] bg-white p-[18px] text-[14px] text-ink sm:px-5 ${className}`}>{children}</section>;
 }
 
 export function H2({ children }: { children: ReactNode }) {
-  return <h2 className="m-0 text-[19px] font-semibold tracking-[-0.01em]">{children}</h2>;
+  return <h2 className="m-0 text-[18px] font-bold leading-tight">{children}</h2>;
 }
 
 type Tone = "up" | "down" | "warn" | "blue" | "dim";
@@ -56,7 +56,7 @@ export function TrustBadge({ trust }: { trust: Trust }) {
 export const STATUS_LABEL: Record<LicenceStatus, string> = { Active: "Licensed", Revoked: "Revoked", Expired: "Expired", Exhausted: "Used up", Unknown: "Unknown" };
 
 export function StatusBadge({ status }: { status: LicenceStatus }) {
-  const kind: PillKind = status === "Active" ? "licensed" : status === "Revoked" ? "revoked" : "neutral";
+  const kind: PillKind = status === "Active" ? "licensed" : status === "Revoked" ? "revoked" : "expired";
   return <StatusPill kind={kind}>{STATUS_LABEL[status]}</StatusPill>;
 }
 
@@ -77,7 +77,7 @@ export function Button({
 }) {
   const k = ({ primary: "lime", secondary: "outline", danger: "danger", ghost: "ghost", ink: "ink" } as const)[kind];
   return (
-    <button type={type} onClick={onClick} disabled={disabled} aria-label={label} className={pillClass(k)}>
+    <button type={type} onClick={onClick} disabled={disabled} aria-label={label} className={btnClass(k)}>
       {children}
     </button>
   );

@@ -144,7 +144,7 @@ export function ReverifyFlow({ referenceSetHash, onDone }: { referenceSetHash: H
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-[26px] bg-white p-6 text-ink">
+    <div className="flex flex-col gap-4 rounded-[20px] bg-white p-6 text-ink">
       {step === "consent" && <ConsentStep wallet={wallet} onDone={toDidit} always />}
       {step === "didit" && <DiditStep address={wallet.address} onDone={toRecheck} />}
       {step === "recheck" && (

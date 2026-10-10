@@ -89,204 +89,182 @@ export function PillLink({ kind = "lime", className = "", href, children, ...res
   );
 }
 
+/** Compact app buttons: 44 px tall, 12 px corners. (pillClass is the landing page's rounder style.) */
+export function btnClass(kind: Kind = "lime", extra = "") {
+  return `inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-4 text-[14px] font-semibold no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${kinds[kind]} ${extra}`;
+}
+
 // ---------------------------------------------------------------- pills and chips
 
-export type PillKind = "licensed" | "revoked" | "waiting" | "neutral" | "lime";
+export type PillKind = "licensed" | "revoked" | "waiting" | "expired" | "neutral" | "lime";
 const pills: Record<PillKind, string> = {
   licensed: "bg-ok-bg text-ok",
   revoked: "bg-bad-bg text-bad",
   waiting: "bg-wait-bg text-wait",
+  expired: "bg-[#ECEEE8] text-grey",
   neutral: "bg-[#ECEEE8] text-grey",
   lime: "bg-ink text-lime",
 };
 
 export function StatusPill({ kind, children, title }: { kind: PillKind; children: ReactNode; title?: string }) {
   return (
-    <span title={title} className={`inline-flex items-center rounded-full px-3 py-1.5 text-[13px] font-semibold ${pills[kind]}`}>
+    <span title={title} className={`inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-[12px] font-semibold ${pills[kind]}`}>
       {children}
     </span>
   );
 }
 
 export function TagChip({ children }: { children: ReactNode }) {
-  return <span className="inline-flex items-center rounded-full border border-field px-3 py-1.5 text-[13px] font-medium text-ink">{children}</span>;
+  return <span className="inline-flex items-center rounded-full bg-paper px-2.5 py-1 text-[12px] font-medium text-ink">{children}</span>;
 }
 
 // ---------------------------------------------------------------- page structure
 
-/** The dark top of an app page. Children are usually a HeroHeadline and, optionally, a hero card. */
-export function PageHero({ children }: { children: ReactNode }) {
+/**
+ * The content area of an app page: off-white ground under the dark nav, up to 1320 px wide, 32 px side
+ * padding (16 px on phones). `narrow` is the 720 px column used by the onboarding flows.
+ */
+export function Page({ children, narrow, className = "" }: { children: ReactNode; narrow?: boolean; className?: string }) {
+  return <div className={`mx-auto flex w-full flex-col gap-[18px] px-4 pb-12 pt-6 sm:px-8 ${narrow ? "max-w-[784px]" : "max-w-[1320px]"} ${className}`}>{children}</div>;
+}
+
+/** Title (28 px), one line of description, and the page's main actions on the right. */
+export function PageHeader({ title, description, actions }: { title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
   return (
-    <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-0.5">
+        <h1 className="m-0 text-[28px] font-bold leading-tight tracking-[-0.01em]">{title}</h1>
+        {description && <p className="m-0 text-[14px] text-grey">{description}</p>}
+      </div>
+      {actions && <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** A plain app page: compact header, then content. */
+export function AppPage({ title, description, actions, narrow, children }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; narrow?: boolean; children: ReactNode }) {
+  return (
+    <Page narrow={narrow}>
+      <PageHeader title={title} description={description} actions={actions} />
       {children}
-    </section>
-  );
-}
-
-/** Big multi-line app headline (Poppins 700). Lines are separate elements; pass pills and stacks inline. */
-export function HeroHeadline({ children, label, className = "flex-[999_1_640px]" }: { children: ReactNode; label?: string; className?: string }) {
-  return (
-    <h1 aria-label={label} className={`m-0 flex min-w-0 flex-col gap-1 text-[clamp(30px,4.6vw,52px)] font-bold leading-[1.05] tracking-[-0.03em] ${className}`}>
-      {children}
-    </h1>
-  );
-}
-
-export function HeroLine({ children, muted }: { children: ReactNode; muted?: boolean }) {
-  return <span className={`flex flex-wrap items-center gap-x-3.5 ${muted ? "text-[#8C9099]" : ""}`}>{children}</span>;
-}
-
-/** The outlined lime pill that sits inside a headline line. */
-export function InlinePill({ children, icon }: { children?: ReactNode; icon?: ReactNode }) {
-  return (
-    <span className="inline-flex h-[clamp(32px,3.6vw,44px)] items-center gap-2.5 rounded-full border-2 border-lime px-4 text-[clamp(13px,1.1vw,15px)] font-semibold tracking-normal text-lime">
-      {icon}
-      {children}
-    </span>
-  );
-}
-
-export function AvatarStack({ seeds, size = 46 }: { seeds: string[]; size?: number }) {
-  return (
-    <span aria-hidden="true" className="inline-flex">
-      {seeds.map((s, i) => (
-        <span key={s + i} style={{ marginLeft: i ? -12 : 0 }}>
-          <Avatar seed={s} size={size} ring="#121316" />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-/** The off-white panel that overlaps the dark hero, with 40px top corners. */
-export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <section className="-mt-12 rounded-t-[40px] bg-paper text-ink">
-      <div className={`mx-auto flex max-w-[1320px] flex-col gap-[22px] px-4 pb-14 pt-8 sm:px-8 ${className}`}>{children}</div>
-    </section>
-  );
-}
-
-/** A plain app page: dark title, then the panel. For pages without a bespoke hero. */
-export function AppPage({ title, kicker, aside, children }: { title: ReactNode; kicker?: ReactNode; aside?: ReactNode; children: ReactNode }) {
-  return (
-    <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-end justify-between gap-6 px-4 pb-[80px] pt-7 text-white sm:px-8 sm:pt-9">
-        <div className="space-y-3">
-          {kicker && <p className="text-[15px] text-grey-dark">{kicker}</p>}
-          <h1 className="m-0 text-[clamp(28px,3.6vw,40px)] font-bold leading-[1.05] tracking-[-0.03em]">{title}</h1>
-        </div>
-        {aside}
-      </section>
-      <Panel>{children}</Panel>
-    </>
+    </Page>
   );
 }
 
 /** A whole page that only says one thing: not found, an error, signed out. */
-export function NoticePage({ title, children, action, kicker }: { title: string; children?: ReactNode; action?: ReactNode; kicker?: ReactNode }) {
+export function NoticePage({ title, children, action, description }: { title: string; children?: ReactNode; action?: ReactNode; description?: ReactNode }) {
   return (
-    <AppPage title={title} kicker={kicker}>
-      <div className="flex flex-col items-start gap-4 rounded-[26px] bg-white p-6 sm:p-8">
-        {children && <div className="max-w-2xl text-[16px] text-grey">{children}</div>}
-        {action ?? (
-          <Link href="/market" className={pillClass("ink")}>
-            Browse creators
-          </Link>
-        )}
-      </div>
+    <AppPage title={title} description={description}>
+      <Card>
+        {children && <div className="max-w-2xl text-[15px] text-grey">{children}</div>}
+        <div className="flex flex-wrap gap-2">
+          {action ?? (
+            <Link href="/market" className={btnClass("ink", "self-start")}>
+              Browse creators
+            </Link>
+          )}
+        </div>
+      </Card>
     </AppPage>
-  );
-}
-
-export function SectionTitle({ children, action, id }: { children: ReactNode; action?: ReactNode; id?: string }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-      <h2 id={id} className="m-0 text-[clamp(20px,2vw,24px)] font-bold tracking-[-0.02em]">{children}</h2>
-      {action}
-    </div>
   );
 }
 
 // ---------------------------------------------------------------- cards
 
-/** Decorative outline circles used on the lime and violet cards. */
-export function CardRings({ stroke = "#121316", opacity = 1 }: { stroke?: string; opacity?: number }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 400 320" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" style={{ opacity }}>
-      <g fill="none" stroke={stroke} strokeWidth="1.6">
-        <circle cx="390" cy="20" r="110" />
-        <circle cx="440" cy="300" r="130" />
-      </g>
-    </svg>
-  );
-}
+type CardTone = "white" | "ink" | "lime" | "violet" | "coral" | "grey" | "lavender";
+const tones: Record<CardTone, string> = {
+  white: "bg-white text-ink",
+  ink: "on-dark bg-ink text-white",
+  lime: "bg-lime text-ink",
+  violet: "bg-violet-deep text-white",
+  coral: "bg-coral text-ink",
+  grey: "bg-[#D9DCE2] text-ink",
+  lavender: "bg-lavender text-ink",
+};
 
-/** The lime action card at the right of a hero. */
-export function LimeCard({ children, label, tone = "lime" }: { children: ReactNode; label: string; tone?: "lime" | "coral" | "grey" }) {
-  const bg = tone === "lime" ? "bg-lime" : tone === "coral" ? "bg-coral" : "bg-[#D9DCE2]";
+/**
+ * The one card: 20 px corners, 18–20 px padding. White by default; lime for the single most important
+ * thing on a page, violet for at most one card, ink for secondary emphasis (terms, checklists).
+ */
+export function Card({
+  title,
+  action,
+  children,
+  tone = "white",
+  className = "",
+  id,
+  as: As = "section",
+  label,
+}: {
+  title?: ReactNode;
+  action?: ReactNode;
+  children?: ReactNode;
+  tone?: CardTone;
+  className?: string;
+  id?: string;
+  as?: "section" | "div" | "article";
+  label?: string;
+}) {
   return (
-    <article aria-label={label} className={`relative flex min-w-0 flex-[1_1_400px] flex-col gap-3 overflow-hidden rounded-[26px] p-6 text-ink ${bg}`}>
-      <CardRings />
-      <div className="relative flex h-full flex-col gap-3.5">{children}</div>
-    </article>
+    <As id={id} aria-label={label} className={`flex min-w-0 scroll-mt-6 flex-col gap-3 rounded-[20px] p-[18px] sm:px-5 ${tones[tone]} ${className}`}>
+      {(title || action) && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {title && <h2 className="m-0 text-[18px] font-bold leading-tight">{title}</h2>}
+          {action}
+        </div>
+      )}
+      {children}
+    </As>
   );
 }
 
 export function StatCard({ label, value, note }: { label: string; value: ReactNode; note?: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-[26px] bg-white p-6">
-      <span className="text-[15px] text-grey">{label}</span>
-      <span className="tnum text-[clamp(22px,2.2vw,28px)] font-bold leading-tight">{value}</span>
-      {note && <span className="text-[13px] text-grey">{note}</span>}
+    <div className="flex min-w-0 flex-col gap-1 rounded-[18px] bg-white px-[18px] py-4">
+      <span className="text-[13px] text-grey">{label}</span>
+      <span className="tnum text-[26px] font-bold leading-tight">{value}</span>
+      {note && <span className="text-[12px] text-grey">{note}</span>}
     </div>
   );
 }
 
-/** White card on the panel. */
-export function Tile({ children, className = "", as: As = "div" }: { children: ReactNode; className?: string; as?: "div" | "article" | "section" }) {
-  return <As className={`flex flex-col gap-4 rounded-[26px] bg-white p-6 ${className}`}>{children}</As>;
+/** Loading shapes in the card style. No numbers until they are real. */
+export function Skeleton({ className = "h-24" }: { className?: string }) {
+  return <span aria-hidden="true" className={`block animate-pulse rounded-[20px] bg-white motion-reduce:animate-none ${className}`} />;
 }
 
-// ---------------------------------------------------------------- marquee ribbon
-
-export function Ribbon({ words, direction, className = "" }: { words: string[]; direction: "l" | "r"; className?: string }) {
-  const all = [...words, ...words, ...words, ...words];
+export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div aria-hidden="true" className={`overflow-hidden py-4 ${className}`}>
-      <div className={`${direction === "l" ? "lk-track-l" : "lk-track-r"} gap-10 whitespace-nowrap font-display text-[clamp(16px,2vw,22px)] font-bold`}>
-        {all.map((w, i) => (
-          <span key={i} className="pr-10">
-            {w}
-          </span>
-        ))}
-      </div>
+    <div className="flex flex-col items-start gap-2 rounded-[20px] bg-white p-[18px] sm:px-5">
+      <h2 className="m-0 text-[17px] font-semibold">{title}</h2>
+      {children && <div className="text-[14px] text-grey">{children}</div>}
+      {action && <div className="pt-1">{action}</div>}
+    </div>
+  );
+}
+
+/** An error, in plain words, with one way forward. */
+export function ErrorCard({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  return (
+    <div role="alert" className="flex flex-wrap items-center gap-3 rounded-[20px] bg-bad-bg p-[18px] text-[14px] text-bad sm:px-5">
+      <span className="min-w-0 flex-[1_1_260px]">{children}</span>
+      {action}
     </div>
   );
 }
 
 // ---------------------------------------------------------------- misc
 
-export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
-  return (
-    <div className="flex flex-col items-start gap-3 rounded-[26px] border-2 border-dashed border-field bg-white/60 p-6">
-      <h3 className="m-0 text-lg font-semibold">{title}</h3>
-      {children && <div className="text-[15px] text-grey">{children}</div>}
-      {action}
-    </div>
-  );
-}
-
 export function Details({ summary, children }: { summary: string; children: ReactNode }) {
   return (
-    <details className="group rounded-[26px] bg-white p-6 [&_summary::-webkit-details-marker]:hidden">
+    <details className="group rounded-[20px] bg-white px-5 py-3 [&_summary::-webkit-details-marker]:hidden">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold">
         {summary}
         <span aria-hidden="true" className="transition-transform group-open:rotate-180">
           ▾
         </span>
       </summary>
-      <div className="mt-4 space-y-4 text-[15px]">{children}</div>
+      <div className="mb-2 mt-3 space-y-4 text-[14px]">{children}</div>
     </details>
   );
 }

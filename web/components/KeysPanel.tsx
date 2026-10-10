@@ -68,7 +68,7 @@ export function KeysPanel() {
     });
 
   return (
-    <section className="rounded-[22px] border border-divider p-5 sm:p-6">
+    <section className="rounded-[16px] border border-divider p-4">
       <h3 className="m-0 text-[18px] font-semibold">Your keys</h3>
       <p className="mt-2 max-w-2xl text-[14px] text-grey">
         Your face data is encrypted in this browser with a key derived from your passkey. We never see the key, and we

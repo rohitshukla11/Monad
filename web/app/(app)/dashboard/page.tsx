@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { AppPage, pillClass } from "@/components/ds";
+import { btnClass, NoticePage, Page, Skeleton } from "@/components/ds";
 import { BrandView } from "@/components/dashboard/BrandView";
 import { CreatorView, type CreatorJson } from "@/components/dashboard/CreatorView";
 import { useWallet } from "@/components/wallet/WalletProvider";
@@ -25,45 +25,50 @@ export default function Dashboard() {
 
   if (!wallet)
     return (
-      <AppPage title="Dashboard">
-        <div className="flex flex-col items-start gap-4 rounded-[26px] bg-white p-6">
-          <p className="m-0 text-[17px]">Sign in to see your licences, earnings and renders.</p>
-          <Link href="/onboard" className={pillClass("ink")}>
+      <NoticePage
+        title="Dashboard"
+        description="Your likeness, your licences and what you've earned."
+        action={
+          <Link href="/onboard" className={btnClass("ink")}>
             Sign in
           </Link>
-        </div>
-      </AppPage>
+        }
+      >
+        Sign in to see your licences, earnings and renders.
+      </NoticePage>
     );
   if (creator === undefined)
     return (
-      <AppPage title="Dashboard">
-        <p role="status" className="m-0 text-[17px] text-grey">
-          Loading your dashboard…
-        </p>
-      </AppPage>
+      <div role="status" aria-label="Loading your dashboard">
+        <Page>
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-72 max-w-full" />
+          </div>
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-[18px] desk:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <Skeleton className="h-72" />
+            <Skeleton className="h-72" />
+          </div>
+          <span className="sr-only">Loading your dashboard…</span>
+        </Page>
+      </div>
     );
 
   const view = creator && as === "creator" ? "creator" : "brand";
-  return (
-    <>
-      {creator && (
-        <div className="mx-auto flex max-w-[1320px] justify-end px-4 pt-4 sm:px-8">
-          <div role="group" aria-label="Dashboard view" className="flex rounded-full bg-ink-raised p-1 text-[14px]">
-            {(["creator", "brand"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={view === v}
-                onClick={() => setAs(v)}
-                className={`min-h-11 rounded-full px-4 font-semibold ${view === v ? "bg-lime text-ink" : "text-white"}`}
-              >
-                As {v}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {view === "creator" && creator ? <CreatorView wallet={wallet} creator={creator} onChanged={load} /> : <BrandView wallet={wallet} />}
-    </>
-  );
+  // A wallet that is both a creator and a brand switches views in the page header.
+  const toggle = creator ? (
+    <div role="group" aria-label="View as" className="grid grid-cols-2 rounded-[12px] bg-white p-1 text-[13px] font-semibold shadow-[inset_0_0_0_1px_#DADDD5]">
+      {(["creator", "brand"] as const).map((v) => (
+        <button key={v} type="button" aria-pressed={view === v} onClick={() => setAs(v)} className={`min-h-9 rounded-[9px] px-3.5 capitalize ${view === v ? "bg-ink text-white" : "text-grey hover:text-ink"}`}>
+          {v}
+        </button>
+      ))}
+    </div>
+  ) : undefined;
+  return view === "creator" && creator ? <CreatorView wallet={wallet} creator={creator} onChanged={load} toggle={toggle} /> : <BrandView wallet={wallet} toggle={toggle} />;
 }

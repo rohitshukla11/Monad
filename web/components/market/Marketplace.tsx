@@ -1,32 +1,39 @@
 "use client";
 
-/** Marketplace (Marketplace.dc.html): real, Didit-verified creators, with search, use and level filters and a price sort. */
+/**
+ * Marketplace (App-Marketplace.dc.html): real, Didit-verified creators, with search, use and level
+ * filters and a price sort. Sample thumbnails show only for a signed-in brand with a completed profile
+ * and a brand session; everyone else sees locked tiles and the count.
+ */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AiTag, AvatarStack, CardRings, HeroHeadline, HeroLine, InlinePill, Panel, pillClass, Silhouette, silhouetteFor, TagChip } from "@/components/ds";
-import { IconArrowUpRight, IconBookmark, IconCamera, IconSearch, VerifiedMark } from "@/components/ds/icons";
+import { AppPage, btnClass, EmptyState } from "@/components/ds";
+import { IconSearch } from "@/components/ds/icons";
 import { CATEGORIES } from "@/lib/categories";
+import { startBrandSession, storedBrandSession } from "@/lib/client/brand-session";
+import { reason } from "@/lib/client/tx";
 import { useBrandReady } from "@/components/brand/useBrandReady";
+import { useWallet } from "@/components/wallet/WalletProvider";
+import { CreatorCard, type MarketCreator, type SampleThumbs } from "./CreatorCard";
 
-export type MarketCreator = {
-  address: string;
-  priceUnits: string; // USDC units, for sorting
-  price: string; // "$2.00"
-  region: string;
-  liveness: "Passive" | "Full";
-  uses: string[]; // category labels
-  autoApprove: boolean;
-  registeredAt: number;
-  /** Public photo (512 px, watermarked). Only creators with one are listed. */
-  photo: string | null;
-  /** The public photo is an AI-generated Likeness sample, not a photo. */
-  photoAi: boolean;
-  tags: string[];
-};
+export type { MarketCreator } from "./CreatorCard";
 
 const SAVED = "likeness:saved-creators";
+/** Sample URLs live 15 minutes; reuse them for 12 so browsing doesn't spend the brand's hourly view budget. */
+const THUMB_TTL = 12 * 60_000;
+type Thumb = { id: string; scene: string; url: string };
+
+function cachedThumbs(creator: string): Thumb[] | null {
+  try {
+    const c = JSON.parse(sessionStorage.getItem(`likeness:thumbs:${creator.toLowerCase()}`) ?? "null") as { at: number; items: Thumb[] } | null;
+    return c && Date.now() - c.at < THUMB_TTL ? c.items : null;
+  } catch {
+    return null;
+  }
+}
 
 export function Marketplace({ creators, source }: { creators: MarketCreator[]; source: string }) {
+  const { wallet } = useWallet();
   // "Request licence" goes to brand onboarding first when this wallet has no completed brand profile.
   const brandReady = useBrandReady();
   const requestHref = (a: string) => (brandReady ? `/market/${a}#request` : `/brand/onboard?next=${encodeURIComponent(`/market/${a}#request`)}`);
@@ -35,6 +42,9 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
   const [level, setLevel] = useState<"any" | "full">("any");
   const [sort, setSort] = useState<"price" | "newest">("price");
   const [saved, setSaved] = useState<string[]>([]);
+  const [token, setToken] = useState<string | null>(null);
+  const [thumbs, setThumbs] = useState<Record<string, SampleThumbs>>({});
+  const [unlocking, setUnlocking] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -55,191 +65,170 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
     return creators
       .filter((c) => use === "all" || c.uses.includes(use))
       .filter((c) => level === "any" || c.liveness === "Full")
-      .filter((c) => !needle || [c.address, c.region, ...c.uses].some((x) => x.toLowerCase().includes(needle)))
+      .filter((c) => !needle || [c.address, c.region, ...c.uses, ...c.tags].some((x) => x.toLowerCase().includes(needle)))
       .sort((a, b) => (sort === "price" ? Number(BigInt(a.priceUnits) - BigInt(b.priceUnits)) : b.registeredAt - a.registeredAt));
   }, [creators, q, use, level, sort]);
 
+  // A brand session from earlier in this tab opens the thumbnails without asking for another signature.
+  useEffect(() => {
+    setToken(wallet && brandReady ? storedBrandSession(wallet.address) : null);
+  }, [wallet, brandReady]);
+
+  useEffect(() => {
+    if (!token) return;
+    let live = true;
+    for (const c of shown.slice(0, 12)) {
+      if (c.samples === 0) continue;
+      const hit = cachedThumbs(c.address);
+      if (hit) {
+        setThumbs((t) => ({ ...t, [c.address]: { state: "shown", items: hit } }));
+        continue;
+      }
+      setThumbs((t) => (t[c.address]?.state === "shown" ? t : { ...t, [c.address]: { state: "loading" } }));
+      fetch(`/api/samples?creator=${c.address}`, { headers: { "x-likeness-brand": token }, cache: "no-store" })
+        .then(async (r) => {
+          const j = (await r.json()) as { samples?: Thumb[]; error?: string };
+          if (!r.ok) throw new Error(j.error ?? `samples ${r.status}`);
+          const items = (j.samples ?? []).slice(0, 3).map(({ id, scene, url }) => ({ id, scene, url }));
+          try {
+            sessionStorage.setItem(`likeness:thumbs:${c.address.toLowerCase()}`, JSON.stringify({ at: Date.now(), items }));
+          } catch {}
+          if (live) setThumbs((t) => ({ ...t, [c.address]: { state: "shown", items } }));
+        })
+        .catch((e) => live && setThumbs((t) => ({ ...t, [c.address]: { state: "error", message: reason(e) } })));
+    }
+    return () => {
+      live = false;
+    };
+  }, [token, shown]);
+
+  const thumbsFor = (c: MarketCreator): SampleThumbs =>
+    thumbs[c.address] ?? { state: "locked", reason: !wallet ? "signed-out" : !brandReady ? "no-brand" : "no-session" };
+
+  async function unlock() {
+    if (!wallet) return;
+    setUnlocking("Sign in your wallet to open sample renders…");
+    try {
+      setToken(await startBrandSession(wallet));
+      setUnlocking(null);
+    } catch (e) {
+      setUnlocking(reason(e));
+    }
+  }
+  const anySamples = creators.some((c) => c.samples > 0);
+
   return (
-    <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
-        <HeroHeadline label="Find a face to license with consent">
-          <HeroLine>
-            Find
-            <InlinePill icon={<IconSearch size={20} stroke="#DCF37B" />} />a face
-          </HeroLine>
-          <HeroLine>
-            <AvatarStack seeds={[...creators.slice(0, 3).map((c) => c.address), "silhouette-b", "silhouette-c", "silhouette-d"].slice(0, 3)} size={46} />
-            <span>to license</span>
-          </HeroLine>
-          <span className="flex flex-wrap items-center gap-3.5">
-            <span>with</span>
-            <form
-              role="search"
-              onSubmit={(e) => e.preventDefault()}
-              className="flex h-[56px] min-w-0 flex-[1_1_320px] items-center gap-2.5 rounded-[18px] border border-ink-line-2 bg-ink-raised pl-5 pr-1.5 text-[clamp(15px,1.3vw,17px)] tracking-normal"
-            >
-              <label htmlFor="creator-search" className="sr-only">
-                Search creators by use, region or address
-              </label>
-              <input
-                id="creator-search"
-                type="search"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="consent: search by use, region or address"
-                className="h-full min-w-0 flex-1 border-0 bg-transparent font-medium text-white outline-none placeholder:text-grey-dark"
-              />
-              <button type="submit" aria-label="Search" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-lime text-ink">
-                <IconSearch size={20} />
-              </button>
-            </form>
-          </span>
-        </HeroHeadline>
-
-        <Link
-          href="/#how"
-          className="relative flex min-h-[200px] min-w-0 flex-[1_1_340px] flex-col justify-between overflow-hidden rounded-[26px] bg-lime p-6 text-ink no-underline sm:min-h-[240px]"
+    <AppPage
+      title="Marketplace"
+      description="Verified creators on Monad testnet. Every licence is approved by the person in it."
+      actions={
+        <>
+          <form role="search" onSubmit={(e) => e.preventDefault()} className="flex h-11 w-full max-w-full items-center sm:w-[380px] gap-2 rounded-[12px] border border-field bg-white px-3.5">
+            <IconSearch size={17} stroke="#5F636B" />
+            <label htmlFor="creator-search" className="sr-only">
+              Search creators by use, region or address
+            </label>
+            <input
+              id="creator-search"
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search by use, region or address"
+              className="h-full min-w-0 flex-1 border-0 bg-transparent text-[14px] outline-none placeholder:text-grey"
+            />
+          </form>
+          <Link href="/#how" className={btnClass("outline")}>
+            How licensing works
+          </Link>
+        </>
+      }
+    >
+      {creators.length === 0 ? (
+        <EmptyState
+          title="No creators listed yet"
+          action={
+            <Link href="/onboard" className={btnClass("ink")}>
+              Become a creator
+            </Link>
+          }
         >
-          <CardRings />
-          <span className="relative flex items-start justify-between">
-            <span aria-hidden="true" className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink text-white">
-              <IconCamera size={22} />
-            </span>
-            <IconArrowUpRight size={34} />
-          </span>
-          <span className="relative text-[clamp(26px,3vw,34px)] font-bold leading-[1.05] tracking-[-0.02em]">
-            How licensing
-            <br />
-            works
-          </span>
-        </Link>
-      </section>
-
-      <Panel>
-        <div role="group" aria-label="Filters" className="flex flex-wrap items-center gap-2.5">
-          {[{ key: "all", label: "All uses" }, ...CATEGORIES.map((c) => ({ key: c.label, label: c.label }))].map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              aria-pressed={use === f.key}
-              onClick={() => setUse(f.key)}
-              className={`min-h-[46px] rounded-full px-5 text-[15px] font-medium ${use === f.key ? "bg-ink text-white" : "border border-field bg-white text-ink"}`}
-            >
-              {f.label}
-            </button>
-          ))}
-          <span className="flex-1" />
-          <label htmlFor="level" className="text-[14px] text-grey">
-            Verification
-          </label>
-          <select id="level" value={level} onChange={(e) => setLevel(e.target.value as "any" | "full")} className="min-h-[46px] rounded-[14px] border border-field bg-white px-3.5 text-[15px] font-medium">
-            <option value="any">Any level</option>
-            <option value="full">Full (active liveness)</option>
-          </select>
-          <label htmlFor="sort" className="text-[14px] text-grey">
-            Sort
-          </label>
-          <select id="sort" value={sort} onChange={(e) => setSort(e.target.value as "price" | "newest")} className="min-h-[46px] rounded-[14px] border border-field bg-white px-3.5 text-[15px] font-medium">
-            <option value="price">Price, low to high</option>
-            <option value="newest">Newest</option>
-          </select>
-        </div>
-
-        <p className="m-0 text-[14px] text-grey" aria-live="polite">
-          {shown.length} of {creators.length} verified creator{creators.length === 1 ? "" : "s"} · from {source}
-        </p>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {shown.map((c) => (
-            <CreatorCard key={c.address} c={c} saved={saved.includes(c.address)} onSave={() => toggleSave(c.address)} requestHref={requestHref(c.address)} />
-          ))}
-          {shown.length === 0 && creators.length > 0 && (
-            <div className="flex flex-col items-start gap-3 rounded-[26px] border-2 border-dashed border-field bg-white/60 p-6 sm:col-span-2">
-              <h2 className="m-0 text-lg font-semibold">No creators match these filters</h2>
+          Every creator here passes an ID check, a liveness selfie and a face match, and adds a public photo, before they are listed.
+        </EmptyState>
+      ) : (
+        <>
+          <div role="group" aria-label="Filters" className="flex flex-wrap items-center gap-2">
+            {[{ key: "all", label: "All uses" }, ...CATEGORIES.map((c) => ({ key: c.label, label: c.label }))].map((f) => (
               <button
+                key={f.key}
                 type="button"
-                onClick={() => {
-                  setQ("");
-                  setUse("all");
-                  setLevel("any");
-                }}
-                className={pillClass("outline")}
+                aria-pressed={use === f.key}
+                onClick={() => setUse(f.key)}
+                className={`min-h-11 rounded-full px-4 text-[14px] font-medium ${use === f.key ? "bg-ink text-white" : "border border-field bg-white text-ink hover:border-grey"}`}
               >
-                Clear filters
+                {f.label}
               </button>
-            </div>
-          )}
-          {creators.length < 4 && (
-            <div className="flex flex-col justify-between gap-4 rounded-[26px] border-2 border-dashed border-field bg-white/60 p-6">
-              <div className="space-y-2">
-                <h2 className="m-0 text-lg font-semibold">{creators.length === 0 ? "No verified creators yet" : "More faces are on their way"}</h2>
-                <p className="m-0 text-[15px] text-grey">Every creator here passed an ID check, a liveness selfie and a face match before they could be listed.</p>
-              </div>
-              <Link href="/onboard" className={pillClass("ink", "self-start")}>
-                Become a creator
-              </Link>
-            </div>
-          )}
-        </div>
-      </Panel>
-    </>
-  );
-}
+            ))}
+            <span className="flex-1" />
+            <span className="flex flex-wrap items-center gap-2">
+              <label htmlFor="level" className="text-[13px] text-grey">
+                Verification
+              </label>
+              <select id="level" value={level} onChange={(e) => setLevel(e.target.value as "any" | "full")} className="min-h-11 rounded-[12px] border border-field bg-white px-2.5 text-[14px]">
+                <option value="any">Any level</option>
+                <option value="full">Full (active liveness)</option>
+              </select>
+              <label htmlFor="sort" className="text-[13px] text-grey">
+                Sort
+              </label>
+              <select id="sort" value={sort} onChange={(e) => setSort(e.target.value as "price" | "newest")} className="min-h-11 rounded-[12px] border border-field bg-white px-2.5 text-[14px]">
+                <option value="price">Price, low to high</option>
+                <option value="newest">Newest</option>
+              </select>
+            </span>
+          </div>
 
-function CreatorCard({ c, saved, onSave, requestHref }: { c: MarketCreator; saved: boolean; onSave: () => void; requestHref: string }) {
-  const s = silhouetteFor(c.address);
-  const name = `${c.address.slice(0, 6)}…${c.address.slice(-4)}`;
-  return (
-    <article className="flex flex-col gap-4 rounded-[26px] bg-white p-[18px]">
-      <div className="relative flex aspect-square items-end justify-center overflow-hidden rounded-[18px]" style={{ background: s.tint }}>
-        {c.photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.photo} alt={`${c.photoAi ? "AI-generated public image" : "Public photo"} of creator ${name}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-        ) : (
-          <Silhouette fill={s.sil} />
-        )}
-        {c.photo && c.photoAi && <AiTag className="absolute left-3 top-3" />}
-      </div>
-      <div className="flex justify-between gap-2.5">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="m-0 flex items-center gap-1.5 text-[17px] font-semibold">
-            <span className="tnum truncate">{name}</span>
-            <VerifiedMark />
-          </h2>
-          <span className="text-[15px] text-grey">{c.region}</span>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-[17px] font-bold">{c.liveness}</span>
-          <span className="text-[13px] text-grey">liveness</span>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-divider pt-3.5">
-        <span className="flex flex-wrap gap-1.5">
-          {c.uses.map((u) => (
-            <TagChip key={u}>{u}</TagChip>
-          ))}
-        </span>
-        <span className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ${c.autoApprove ? "bg-ok-bg text-ok" : "bg-wait-bg text-wait"}`}>{c.autoApprove ? "Instant" : "Asks first"}</span>
-      </div>
-      {c.tags.length > 0 && <p className="m-0 text-[14px] capitalize text-grey">{c.tags.join(" · ")}</p>}
-      <div className="flex items-baseline justify-between">
-        <span className="text-[15px] text-grey">Price per render</span>
-        <span className="tnum text-[18px] font-bold">{c.price}</span>
-      </div>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          aria-label={saved ? `Remove ${name} from saved` : `Save ${name}`}
-          aria-pressed={saved}
-          onClick={onSave}
-          className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl border border-field bg-white"
-        >
-          <IconBookmark size={20} filled={saved} />
-        </button>
-        <Link href={requestHref} className="flex min-h-[52px] flex-1 items-center justify-center rounded-2xl bg-lime text-[16px] font-semibold text-ink no-underline hover:bg-lime-deep">
-          Request licence
-        </Link>
-      </div>
-    </article>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="m-0 text-[13px] text-grey" aria-live="polite">
+              {shown.length} of {creators.length} verified creator{creators.length === 1 ? "" : "s"} · from {source}
+            </p>
+            {wallet && brandReady && !token && anySamples && (
+              <button type="button" onClick={unlock} className={btnClass("outline", "min-h-9 px-3 text-[13px]")}>
+                Show samples
+              </button>
+            )}
+            {unlocking && (
+              <span role="status" className="text-[13px] text-wait">
+                {unlocking}
+              </span>
+            )}
+          </div>
+
+          {shown.length === 0 ? (
+            <EmptyState
+              title="No creators match these filters"
+              action={
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQ("");
+                    setUse("all");
+                    setLevel("any");
+                  }}
+                  className={btnClass("outline")}
+                >
+                  Clear filters
+                </button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 xl:grid-cols-4">
+              {shown.map((c) => (
+                <CreatorCard key={c.address} c={c} saved={saved.includes(c.address)} onSave={() => toggleSave(c.address)} requestHref={requestHref(c.address)} thumbs={thumbsFor(c)} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </AppPage>
   );
 }

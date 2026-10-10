@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Marketplace, type MarketCreator } from "@/components/market/Marketplace";
-import { AppPage } from "@/components/ds";
-import { Note } from "@/components/ui";
+import { AppPage, btnClass, ErrorCard } from "@/components/ds";
 import { categoryLabels, regionLabels } from "@/lib/categories";
 import { usdc } from "@/lib/licensing";
 import { historySource } from "@/lib/server/index";
@@ -31,11 +30,20 @@ export default async function MarketPage() {
         photo: profiles[c.address.toLowerCase()]?.photo ?? null,
         photoAi: !!profiles[c.address.toLowerCase()]?.photoAi,
         tags: [...(profiles[c.address.toLowerCase()]?.tags.tone ?? []), ...(profiles[c.address.toLowerCase()]?.tags.setting ?? [])],
+        samples: profiles[c.address.toLowerCase()]?.samples ?? 0,
       }));
   } catch (e) {
     return (
-      <AppPage title="Marketplace">
-        <Note tone="down">Could not read the creator registry: {(e as Error).message}</Note>
+      <AppPage title="Marketplace" description="Verified creators on Monad testnet. Every licence is approved by the person in it.">
+        <ErrorCard
+          action={
+            <a href="/market" className={btnClass("outline")}>
+              Try again
+            </a>
+          }
+        >
+          Couldn&apos;t read the creator registry on Monad testnet ({(e as Error).message}). The RPC may be busy; trying again usually works.
+        </ErrorCard>
       </AppPage>
     );
   }

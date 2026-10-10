@@ -10,12 +10,13 @@ import { api, browserPub, reason, write } from "@/lib/client/tx";
 import { categoryLabels } from "@/lib/categories";
 import { deployment } from "@/lib/deployment";
 import { usdc, type Licence } from "@/lib/licensing";
-import { useProfiles } from "@/lib/client/profiles";
-import { CreatorFace, HeroHeadline, HeroLine, InlinePill, LimeCard, Panel, pillClass, SectionTitle, StatCard, StatusPill } from "@/components/ds";
-import { IconArrowRight, IconSearch } from "@/components/ds/icons";
-import { fmtDay, Note, STATUS_LABEL, Tx, inputClass } from "@/components/ui";
+import { useBrandCards, useProfiles } from "@/lib/client/profiles";
+import { AppPage, BrandChip, btnClass, Card, CreatorFace, StatCard, StatusPill } from "@/components/ds";
+import { IconSearch } from "@/components/ds/icons";
+import { fmtDay, STATUS_LABEL, Tx } from "@/components/ui";
 import type { ActiveWallet } from "@/components/wallet/WalletProvider";
 import { Delegation } from "./Delegation";
+import { LicenceTable } from "./LicenceTable";
 import { Renders } from "./Renders";
 
 type Json<T> = { [K in keyof T]: T[K] extends bigint ? string : T[K] };
@@ -25,7 +26,7 @@ type Brief = { brand: string; campaign: string; use: string };
 const money = (units: bigint) => `$${usdc.format(units)}`;
 const pad = (id: string) => `#${id.padStart(4, "0")}`;
 
-export function BrandView({ wallet }: { wallet: ActiveWallet }) {
+export function BrandView({ wallet, toggle }: { wallet: ActiveWallet; toggle?: React.ReactNode }) {
   const [rows, setRows] = useState<Row[]>([]);
   const faces = useProfiles(rows.map((r) => r.creator));
   const [briefs, setBriefs] = useState<Record<string, Brief | null>>({});
@@ -87,128 +88,169 @@ export function BrandView({ wallet }: { wallet: ActiveWallet }) {
   const active = rows.filter((r) => r.status === "Active");
 
   return (
-    <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
-        <HeroHeadline label={`Your licences: ${active.length} active, ${money(spent)} spent on ${renders} renders`}>
-          <HeroLine>
-            Your licences
-            <InlinePill>{active.length} active</InlinePill>
-          </HeroLine>
-          <HeroLine>spent {money(spent)}</HeroLine>
-          <HeroLine muted>
-            on {renders} render{renders === 1 ? "" : "s"}
-          </HeroLine>
-        </HeroHeadline>
-        {active.length > 0 ? (
-          <LimeCard label="Generate">
-            <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">{money(inEscrow)} in escrow</span>
-            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">Make your next render</h2>
-            <p className="m-0 text-[15px] leading-relaxed">Each render pays the creator and anchors a receipt in one Monad transaction.</p>
-            <Link href="/generate" className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[18px] bg-ink px-5 text-[15px] font-semibold text-white no-underline">
-              Generate <IconArrowRight size={18} stroke="#FFFFFF" />
-            </Link>
-          </LimeCard>
-        ) : (
-          <LimeCard label="Find a face">
-            <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">No active licence</span>
-            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">Find a face to license</h2>
-            <p className="m-0 text-[15px] leading-relaxed">Every creator in the marketplace is a verified human who set their own terms.</p>
-            <Link href="/market" className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[18px] bg-ink px-5 text-[15px] font-semibold text-white no-underline">
-              <IconSearch size={18} stroke="#FFFFFF" /> Marketplace
-            </Link>
-          </LimeCard>
-        )}
-      </section>
-
-      <Panel>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="USDC in your wallet" value={balance === null ? "…" : money(balance)} note="Circle USDC on Monad testnet" />
-          <StatCard label="In escrow" value={money(inEscrow)} note="refundable once a licence ends" />
-          <StatCard label="Spent on renders" value={money(spent)} note="creator payout plus the 10% fee" />
-          <StatCard label="Renders" value={renders} note="each with a receipt" />
+    <AppPage
+      title="Dashboard"
+      description="Your licences, escrow and renders."
+      actions={
+        <>
+          {toggle}
+          <Link href="/market" className={btnClass("lime")}>
+            <IconSearch size={16} /> Find a creator
+          </Link>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="USDC balance" value={balance === null ? "…" : money(balance)} note="Circle USDC on Monad testnet" />
+        <StatCard label="In escrow" value={money(inEscrow)} note="refundable once a licence ends" />
+        <StatCard label="Spent on renders" value={money(spent)} note="creator payout plus the 10% fee" />
+        <StatCard label="Renders" value={renders} note={`${active.length} active licence${active.length === 1 ? "" : "s"}`} />
+      </div>
+      {msg && (
+        <div role="status" className="rounded-[16px] bg-white px-5 py-3 text-[14px]">
+          {msg}
         </div>
-        {balance === 0n && <Note>No testnet USDC in this wallet. Get some at faucet.circle.com (network: Monad Testnet) to fund licences.</Note>}
+      )}
 
-        <SectionTitle
-          action={
-            <Link href="/market" className={pillClass("outline")}>
-              Find a creator
-            </Link>
-          }
-        >
-          Licences you hold
-        </SectionTitle>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {rows.length === 0 && (
-            <div className="flex flex-col gap-2 rounded-[26px] border-2 border-dashed border-field bg-white/60 p-6">
-              <h3 className="m-0 text-lg font-semibold">No licences yet</h3>
-              <p className="m-0 text-[15px] text-grey">Request one from a creator in the marketplace.</p>
-            </div>
-          )}
-          {rows.map((l) => {
-            const isActive = l.status === "Active";
-            const bal = BigInt(l.escrow.balance);
-            const brief = briefs[l.id];
-            return (
-              <article key={l.id} className="flex flex-col gap-4 rounded-[26px] bg-white p-6">
-                <div className="flex items-center justify-between gap-2.5">
-                  <Link href={`/market/${l.creator}`} className="flex min-w-0 items-center gap-3 text-ink no-underline">
-                    <CreatorFace seed={l.creator} photo={faces[l.creator.toLowerCase()]?.photo} />
-                    <span className="flex min-w-0 flex-col">
-                      <span className="tnum truncate text-[17px] font-semibold">
-                        {l.creator.slice(0, 6)}…{l.creator.slice(-4)}
+      <div className="grid grid-cols-1 items-start gap-[18px] desk:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-[18px]">
+          <Card title="Licences you hold">
+            {rows.length === 0 ? (
+              <p className="m-0 text-[14px] text-grey">No licences yet. Request one from a creator in the marketplace.</p>
+            ) : (
+              <LicenceTable
+                caption="Licences you hold"
+                rows={rows}
+                rowKey={(l) => l.id}
+                muted={(l) => l.status !== "Active"}
+                columns={[
+                  {
+                    header: "Creator",
+                    cell: (l) => (
+                      <Link href={`/market/${l.creator}`} className="flex min-w-0 items-center gap-2.5 text-inherit no-underline">
+                        <CreatorFace seed={l.creator} photo={faces[l.creator.toLowerCase()]?.photo} size={32} />
+                        <span className="flex min-w-0 flex-col">
+                          <span className="tnum truncate font-semibold">
+                            {l.creator.slice(0, 6)}…{l.creator.slice(-4)} <span className="text-[12px] font-normal text-grey">{pad(l.id)}</span>
+                          </span>
+                          <span className="truncate text-[12px] text-grey">
+                            {categoryLabels(l.category).join(", ")}
+                            {briefs[l.id]?.campaign ? ` · “${briefs[l.id]!.campaign}”` : ""}
+                          </span>
+                        </span>
+                      </Link>
+                    ),
+                  },
+                  { header: "Status", cell: (l) => <StatusPill kind={l.status === "Active" ? "licensed" : l.status === "Revoked" ? "revoked" : "expired"}>{STATUS_LABEL[l.status]}</StatusPill> },
+                  { header: "Renders", cell: (l) => `${l.renderCount} of ${l.renderCap}`, className: "tnum whitespace-nowrap" },
+                  {
+                    header: "Escrow left",
+                    cell: (l) => (
+                      <span className="flex flex-col">
+                        <span className="font-semibold">{money(BigInt(l.escrow.balance))}</span>
+                        <span className="text-[12px] text-grey">{l.status === "Active" ? `until ${fmtDay(BigInt(l.end))}` : BigInt(l.escrow.refunded) > 0n ? `refunded ${money(BigInt(l.escrow.refunded))}` : "closed"}</span>
                       </span>
-                      <span className="text-[14px] text-grey">Licence {pad(l.id)}</span>
-                    </span>
-                  </Link>
-                  <StatusPill kind={isActive ? "licensed" : l.status === "Revoked" ? "revoked" : "neutral"}>{STATUS_LABEL[l.status]}</StatusPill>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="rounded-full border border-field px-3 py-1.5 text-[13px]">{categoryLabels(l.category).join()}</span>
-                  <span className="rounded-full border border-field px-3 py-1.5 text-[13px]">{isActive ? `Until ${fmtDay(BigInt(l.end))}` : `Ended ${fmtDay(BigInt(l.end))}`}</span>
-                  {brief?.campaign && <span className="rounded-full border border-field px-3 py-1.5 text-[13px]">“{brief.campaign}”</span>}
-                </div>
-                <div className="flex items-baseline justify-between border-t border-divider pt-3.5">
-                  <span className="text-[15px] text-grey">
-                    {l.renderCount} of {l.renderCap} renders · {money(BigInt(l.pricePerRender))} each
-                  </span>
-                  <span className="tnum text-[17px] font-bold" title="Escrow balance">
-                    {money(bal)}
-                  </span>
-                </div>
-                {isActive ? (
-                  <div className="flex flex-wrap items-end gap-2">
-                    <label className="flex min-w-0 flex-1 flex-col gap-1 text-[13px] text-grey">
-                      Deposit (USDC)
-                      <input className={inputClass} inputMode="decimal" value={amounts[l.id] ?? suggested(l)} onChange={(e) => setAmounts({ ...amounts, [l.id]: e.target.value })} />
-                    </label>
-                    <button type="button" disabled={busy} onClick={() => deposit(l)} className={pillClass("outline", "min-h-11")}>
-                      Deposit
-                    </button>
-                    <Link href={`/generate?licence=${l.id}`} className={pillClass("lime")}>
-                      Generate
-                    </Link>
-                  </div>
-                ) : bal > 0n ? (
-                  <button type="button" disabled={busy} onClick={() => refund(l)} className={pillClass("ink")}>
-                    Refund {money(bal)}
-                  </button>
-                ) : (
-                  <span className="text-[14px] text-grey">Closed{BigInt(l.escrow.refunded) > 0n ? ` · refunded ${money(BigInt(l.escrow.refunded))}` : ""}</span>
-                )}
-              </article>
-            );
-          })}
+                    ),
+                    className: "tnum",
+                  },
+                ]}
+                actions={(l) => {
+                  const bal = BigInt(l.escrow.balance);
+                  if (l.status === "Active")
+                    return (
+                      <>
+                        <label className="sr-only" htmlFor={`dep-${l.id}`}>
+                          Deposit for licence {pad(l.id)} (USDC)
+                        </label>
+                        <input
+                          id={`dep-${l.id}`}
+                          className="min-h-9 w-20 rounded-[10px] border border-field bg-white px-2 text-right text-[13px]"
+                          inputMode="decimal"
+                          value={amounts[l.id] ?? suggested(l)}
+                          onChange={(e) => setAmounts({ ...amounts, [l.id]: e.target.value })}
+                        />
+                        <button type="button" disabled={busy} onClick={() => deposit(l)} className={btnClass("outline", "min-h-9 px-3 text-[13px]")}>
+                          Deposit
+                        </button>
+                        <Link href={`/generate?licence=${l.id}`} className={btnClass("lime", "min-h-9 px-3 text-[13px]")}>
+                          Generate
+                        </Link>
+                      </>
+                    );
+                  if (bal > 0n)
+                    return (
+                      <button type="button" disabled={busy} onClick={() => refund(l)} className={btnClass("ink", "min-h-9 px-3 text-[13px]")}>
+                        Refund {money(bal)}
+                      </button>
+                    );
+                  return <span className="text-[13px] text-grey">Closed</span>;
+                }}
+              />
+            )}
+          </Card>
+          <Delegation />
+          <Renders />
         </div>
-        {msg && (
-          <div role="status" className="rounded-2xl bg-white px-5 py-3 text-[15px]">
-            {msg}
-          </div>
-        )}
-        <Delegation />
-        <Renders />
-      </Panel>
-    </>
+
+        <div className="flex min-w-0 flex-col gap-[18px]">
+          <Funding address={wallet.address} empty={balance === 0n} />
+          <BrandProfileCard address={wallet.address} />
+        </div>
+      </div>
+    </AppPage>
+  );
+}
+
+/** Where the brand's USDC comes from on testnet. */
+function Funding({ address, empty }: { address: string; empty: boolean }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Card title="Funding">
+      <p className="m-0 text-[13px] text-grey">Send testnet USDC to this wallet, then deposit it into a licence&apos;s escrow.</p>
+      <span className="tnum break-all rounded-[12px] bg-paper px-3 py-2 font-mono text-[12px]">{address}</span>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(address);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            } catch {}
+          }}
+          className={btnClass("outline")}
+        >
+          <span aria-live="polite">{copied ? "Copied" : "Copy address"}</span>
+        </button>
+        <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className={btnClass(empty ? "ink" : "outline")}>
+          USDC faucet<span className="sr-only"> (opens faucet.circle.com)</span>
+        </a>
+      </div>
+      {empty && <p className="m-0 text-[13px] text-wait">No testnet USDC in this wallet yet. At faucet.circle.com pick Monad Testnet.</p>}
+    </Card>
+  );
+}
+
+function BrandProfileCard({ address }: { address: string }) {
+  const card = useBrandCards([address])[address.toLowerCase()];
+  return (
+    <Card
+      title="Brand profile"
+      action={
+        <Link href="/brand/onboard" className="min-h-11 content-center text-[13px] font-semibold underline underline-offset-2">
+          {card ? "Edit" : "Set up"}
+        </Link>
+      }
+    >
+      {card ? (
+        <>
+          <BrandChip brand={card} />
+          {card.website && <span className="break-all text-[13px] text-grey">{card.website}</span>}
+        </>
+      ) : (
+        <p className="m-0 text-[13px] text-grey">No brand profile yet. Creators see your name, logo and domain check before they approve a licence.</p>
+      )}
+    </Card>
   );
 }
 

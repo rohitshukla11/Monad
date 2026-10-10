@@ -88,9 +88,9 @@ export function BrandOnboard() {
   const step = !wallet ? 1 : brand === undefined ? null : !brand || editing ? 2 : 3;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-[18px]">
       <Progress step={complete && step === 3 ? 4 : (step ?? 2)} steps={STEPS} />
-      <section aria-live="polite" className="rounded-[26px] bg-white p-6 sm:p-8">
+      <section aria-live="polite" className="rounded-[20px] bg-white p-5 sm:p-6">
         {step === null && (
           <p role="status" className="m-0 text-[16px] text-grey">
             Picking up where you left off…
@@ -256,7 +256,7 @@ function CompanyStep({ wallet, initial, onSaved }: { wallet: ActiveWallet; initi
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Your company</h2>
+        <h2 className="m-0 text-[18px] font-bold">Your company</h2>
         <p className="m-0 max-w-2xl text-[15px] text-grey">Creators see your name, logo and badge before they approve a licence.</p>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -450,7 +450,7 @@ function AgreeAndFund({
       </div>
 
       <section aria-labelledby="policy-title" className="flex flex-col gap-3">
-        <h2 id="policy-title" className="m-0 text-[20px] font-bold tracking-[-0.02em]">
+        <h2 id="policy-title" className="m-0 text-[18px] font-bold">
           Brand policy
         </h2>
         <ol className="m-0 max-w-3xl list-decimal space-y-2 pl-5 text-[15px] text-[#3E4148]">

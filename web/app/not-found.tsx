@@ -1,27 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NoticePage, pillClass } from "@/components/ds";
+import { btnClass, NoticePage } from "@/components/ds";
 import { AppHeader } from "@/components/site/AppHeader";
 
 export const metadata: Metadata = { title: "Not found" };
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-ink text-white">
-      <AppHeader />
-      <main id="main" className="text-ink">
+    <div className="flex min-h-screen flex-col bg-paper">
+      <div className="bg-ink text-white">
+        <AppHeader />
+      </div>
+      <main id="main" className="flex-1 text-ink">
         <NoticePage
           title="Nothing here"
-          kicker="404"
+          description="Page not found (404)"
           action={
-            <div className="flex flex-wrap gap-3">
-              <Link href="/market" className={pillClass("ink")}>
+            <>
+              <Link href="/market" className={btnClass("ink")}>
                 Browse creators
               </Link>
-              <Link href="/" className={pillClass("outline")}>
+              <Link href="/" className={btnClass("outline")}>
                 Home
               </Link>
-            </div>
+            </>
           }
         >
           That page does not exist. If you followed a link to a creator or a licence, check the address.

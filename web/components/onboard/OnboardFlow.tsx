@@ -163,10 +163,10 @@ export function OnboardFlow() {
   const step: 1 | 2 | 3 | "done" | null = !wallet ? 1 : resolving || (registered && !done) ? null : done ? "done" : didit?.state === "approved" ? 3 : 2;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-[18px]">
       <Progress step={step === "done" ? (photoStep ? 4 : 5) : (step ?? (wallet ? 2 : 1))} />
 
-      <section aria-live="polite" className="rounded-[26px] bg-white p-6 sm:p-8">
+      <section aria-live="polite" className="rounded-[20px] bg-white p-5 sm:p-6">
         {step === null && (
           <p role="status" className="m-0 text-[16px] text-grey">
             {registered ? "You're already registered. Opening your dashboard…" : "Picking up where you left off…"}
@@ -266,15 +266,15 @@ export function Progress({ step, steps = STEPS }: { step: number; steps?: readon
   const STEPS = steps;
   const pct = Math.min(100, ((step - 1) / STEPS.length) * 100 + (step > STEPS.length ? 0 : 100 / STEPS.length / 2));
   return (
-    <div className="flex flex-col gap-3 rounded-[22px] bg-white px-5 py-4 sm:px-6">
-      <ol aria-label="Onboarding steps" className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-[14px] sm:text-[15px]">
+    <div className="flex flex-col gap-2.5 rounded-[20px] bg-white px-5 py-3.5">
+      <ol aria-label="Onboarding steps" className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-[13px]">
         {STEPS.map((t, i) => {
           const n = i + 1;
           const isDone = step > n;
           const now = step === n;
           return (
             <li key={t} aria-current={now ? "step" : undefined} className={`flex items-center gap-2 font-semibold ${now ? "text-ink" : isDone ? "text-ok" : "text-grey"}`}>
-              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] ${now ? "bg-ink text-lime" : isDone ? "bg-ok-bg" : "bg-[#E3E6EC]"}`}>
+              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] ${now ? "bg-ink text-lime" : isDone ? "bg-ok-bg" : "bg-[#E3E6EC]"}`}>
                 {isDone ? <IconCheck size={13} stroke="#3B6E25" /> : n}
               </span>
               {t}
@@ -283,7 +283,7 @@ export function Progress({ step, steps = STEPS }: { step: number; steps?: readon
           );
         })}
       </ol>
-      <div role="progressbar" aria-label="Onboarding progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} className="h-2 overflow-hidden rounded-full bg-[#E3E6EC]">
+      <div role="progressbar" aria-label="Onboarding progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} className="h-1.5 overflow-hidden rounded-full bg-[#E3E6EC]">
         <div className="h-full rounded-full bg-ink transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -314,7 +314,7 @@ export function SignIn() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Sign in with your email</h2>
+      <h2 className="m-0 text-[18px] font-bold">Sign in with your email</h2>
       <p className="m-0 max-w-2xl text-[15px] text-grey">We create your wallet on Monad as you sign in. No seed phrase, no extension.</p>
       {!user.data && !otp && (
         <form
@@ -440,7 +440,7 @@ function VerifyStep({ wallet, consented, didit, onConsent, onDidit }: { wallet: 
   if (waiting)
     return (
       <div className="flex flex-col items-start gap-4">
-        <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Finish on your phone… we&apos;ll continue automatically</h2>
+        <h2 className="m-0 text-[18px] font-bold">Finish on your phone… we&apos;ll continue automatically</h2>
         <p className="m-0 max-w-2xl text-[15px] text-grey">
           Didit opened in a new tab. {didit.level === "full" ? "On a computer it shows a QR code: scan it and finish on your phone." : "Finish there with your camera, or scan its QR code to use your phone."} Show
           your ID, then take the selfie. This page moves on by itself when Didit is done.
@@ -471,7 +471,7 @@ function VerifyStep({ wallet, consented, didit, onConsent, onDidit }: { wallet: 
           <span className="text-[15px]">{failed.help}</span>
         </div>
       )}
-      <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Verify it&apos;s you</h2>
+      <h2 className="m-0 text-[18px] font-bold">Verify it&apos;s you</h2>
       <p className="m-0 max-w-3xl text-[15px] text-grey">
         Didit checks your ID, takes a liveness selfie and matches it to your ID. It takes about two minutes. In short:
       </p>
@@ -702,7 +702,7 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Protect your photos</h2>
+        <h2 className="m-0 text-[18px] font-bold">Protect your photos</h2>
         <p className="m-0 max-w-3xl text-[15px] text-grey">
           Three quick photos. Each is matched to your Didit selfie, then encrypted in this browser under your Face ID before anything is saved.
         </p>
@@ -754,7 +754,7 @@ function Done({ wallet, liveness, registeredAt, photo }: { wallet: ActiveWallet;
   const level = liveness === "active" ? "Full: active liveness" : liveness === "passive" ? "Free: passive liveness" : "Verified";
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">You&apos;re a verified creator</h2>
+      <h2 className="m-0 text-[18px] font-bold">You&apos;re a verified creator</h2>
       <article aria-label="Your creator credential" className="relative flex max-w-md flex-col gap-3 overflow-hidden rounded-[22px] bg-ink p-6 text-white">
         <span className="flex items-center gap-3 text-[13px] font-semibold text-lime">
           <CreatorFace seed={wallet.address} photo={photo} size={48} />

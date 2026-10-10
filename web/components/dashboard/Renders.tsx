@@ -51,7 +51,7 @@ export function Renders() {
       {rows?.length === 0 && <Note tone="dim">No renders yet.</Note>}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rows?.map((r) => (
-          <div key={r.assetHash} className="flex flex-col gap-2 rounded-[22px] border border-divider p-3">
+          <div key={r.assetHash} className="flex flex-col gap-2 rounded-[16px] border border-divider p-3">
             {r.download ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={r.download} alt={`Licence ${r.licenceId} render ${r.renderIndex}`} className="aspect-square w-full rounded-[18px] object-cover" />

@@ -55,6 +55,9 @@
   --color-warn: #6538c4;
   --color-blue: #6538c4;
 
+  /* layout: app pages stack into one column below 900 px */
+  --breakpoint-desk: 56.25rem;
+
   /* shapes */
   --radius-card: 26px;
   --radius-hero: 30px;

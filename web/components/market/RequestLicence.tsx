@@ -15,7 +15,8 @@ import { deployment } from "@/lib/deployment";
 import { fitsTerms, usdc, type LicenceRequest, type Terms } from "@/lib/licensing";
 import { useWallet } from "@/components/wallet/WalletProvider";
 import { brandStatus } from "@/lib/client/brand-session";
-import { Badge, Button, Field, Note, Tx, inputClass } from "@/components/ui";
+import { btnClass, Card } from "@/components/ds";
+import { Badge, Field, Tx, inputClass } from "@/components/ui";
 
 type TermsJson = Omit<Terms, "maxDuration" | "pricePerRender"> & { maxDuration: string; pricePerRender: string };
 type Stored = { id: string; state: string; request: Record<string, string | number>; brief: { campaign: string }; signature?: Hex };
@@ -122,81 +123,102 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
     }
   }
 
+  const total = parsedPrice * BigInt(Math.max(0, cap || 0));
   return (
-    <section id="request" aria-labelledby="request-title" className="flex scroll-mt-6 flex-col gap-6 rounded-[26px] bg-white p-6 sm:p-8">
-      <h2 id="request-title" className="m-0 text-[clamp(20px,2vw,24px)] font-bold tracking-[-0.02em]">Request a licence</h2>
-      {!wallet && <Note>Sign in (or pick a DEV wallet in the header) to request a licence.</Note>}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Use">
-          <select className={inputClass} value={category} onChange={(e) => setCategory(Number(e.target.value))}>
-            {allowed.map((c) => (
-              <option key={c.key} value={c.bit}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Regions" group>
-          <div className="flex flex-wrap gap-2">
-            {REGIONS.map((r) => (
-              <button
-                key={r.key}
-                type="button"
-                onClick={() => setRegions(regions ^ r.bit)}
-                aria-pressed={!!(regions & r.bit)}
-                className={`inline-flex min-h-11 items-center rounded-full border px-4 text-[14px] font-semibold ${regions & r.bit ? "border-ink bg-ink text-lime" : "border-field bg-white text-ink hover:border-grey"}`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+    <Card id="request" title="Request a licence">
+      <Field label="Use">
+        <select className={inputClass} value={category} onChange={(e) => setCategory(Number(e.target.value))}>
+          {allowed.map((c) => (
+            <option key={c.key} value={c.bit}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Renders">
+          <input className={inputClass} type="number" min={1} value={cap} onChange={(e) => setCap(Number(e.target.value))} />
         </Field>
         <Field label="Length (days)">
           <input className={inputClass} type="number" min={1} max={365} value={days} onChange={(e) => setDays(Number(e.target.value))} />
         </Field>
-        <Field label="Renders">
-          <input className={inputClass} type="number" min={1} value={cap} onChange={(e) => setCap(Number(e.target.value))} />
-        </Field>
-        <Field label="Price per render (USDC)">
-          <input className={inputClass} value={price} onChange={(e) => setPrice(e.target.value)} />
-        </Field>
-        <Field label="Brand">
-          <input className={inputClass} value={brief.brand} onChange={(e) => setBrief({ ...brief, brand: e.target.value })} />
-        </Field>
-        <Field label="Campaign">
-          <input className={inputClass} value={brief.campaign} onChange={(e) => setBrief({ ...brief, campaign: e.target.value })} />
-        </Field>
-        <Field label="Intended use" hint="Stored off chain; its hash goes on chain with the licence.">
-          <input className={inputClass} value={brief.use} onChange={(e) => setBrief({ ...brief, use: e.target.value })} />
-        </Field>
       </div>
-      <div className="flex flex-wrap items-center gap-4">
-        <Button kind="ink" onClick={submit} disabled={!wallet || busy || !regions || parsedPrice <= 0n}>
-          {outside ? "Send to creator for approval" : "Get licence now (inside the creator's terms)"}
-        </Button>
-        {outside ? <Badge tone="warn">Needs the creator's signature: {outside}</Badge> : <Badge tone="up">Auto-approved on chain</Badge>}
+      <Field label="Campaign">
+        <input className={inputClass} value={brief.campaign} onChange={(e) => setBrief({ ...brief, campaign: e.target.value })} />
+      </Field>
+      <Field label="Intended use" hint="Stored off chain; its hash goes on chain with the licence.">
+        <input className={inputClass} value={brief.use} onChange={(e) => setBrief({ ...brief, use: e.target.value })} />
+      </Field>
+      <details className="rounded-[14px] border border-divider px-3.5 [&_summary::-webkit-details-marker]:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-[14px] font-semibold">
+          Regions, price and brand <span aria-hidden="true">▾</span>
+        </summary>
+        <div className="flex flex-col gap-3 pb-3.5">
+          <Field label="Regions" group>
+            <div className="flex flex-wrap gap-1.5">
+              {REGIONS.map((r) => (
+                <button
+                  key={r.key}
+                  type="button"
+                  onClick={() => setRegions(regions ^ r.bit)}
+                  aria-pressed={!!(regions & r.bit)}
+                  className={`inline-flex min-h-11 items-center rounded-full border px-3 text-[13px] font-semibold ${regions & r.bit ? "border-ink bg-ink text-lime" : "border-field bg-white text-ink hover:border-grey"}`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Price per render (USDC)">
+            <input className={inputClass} value={price} onChange={(e) => setPrice(e.target.value)} />
+          </Field>
+          <Field label="Brand">
+            <input className={inputClass} value={brief.brand} onChange={(e) => setBrief({ ...brief, brand: e.target.value })} />
+          </Field>
+        </div>
+      </details>
+      <div className="flex items-end justify-between gap-3 border-t border-divider pt-3">
+        <span className="text-[13px] text-grey">
+          Total, {cap || 0} × ${usdc.format(parsedPrice)}
+        </span>
+        <span className="tnum text-[26px] font-bold leading-none">${usdc.format(total)}</span>
       </div>
-      {msg && <div role="status" className="text-[15px] text-grey">{msg}</div>}
+      <button type="button" className={btnClass("lime", "w-full")} onClick={submit} disabled={!wallet || busy || !regions || parsedPrice <= 0n}>
+        {outside ? "Send to creator for approval" : "Get licence now"}
+      </button>
+      <span className="text-[12px]">
+        {outside ? <Badge tone="warn">Needs the creator&apos;s signature: {outside}</Badge> : <Badge tone="up">Inside the creator&apos;s terms: issued on chain at once</Badge>}
+      </span>
+      {msg && (
+        <div role="status" className="text-[14px] text-grey">
+          {msg}
+        </div>
+      )}
       {mine.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="m-0 text-[17px] font-semibold">Your requests to this creator</h3>
+        <div className="flex flex-col gap-2 border-t border-divider pt-3">
+          <h3 className="m-0 text-[15px] font-semibold">Your requests to this creator</h3>
           {mine.map((r) => (
-            <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-divider px-4 py-3">
-              <span>
-                {r.brief.campaign} · {r.request.renderCap} renders · {usdc.format(BigInt(r.request.pricePerRender))} USDC
-              </span>
-              <span className="flex flex-wrap items-center gap-3">
+            <div key={r.id} className="flex flex-col gap-2 rounded-[14px] border border-divider px-3.5 py-2.5 text-[13px]">
+              <span className="flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  {r.brief.campaign || "Request"} · {r.request.renderCap} renders · ${usdc.format(BigInt(r.request.pricePerRender))}
+                </span>
                 <Badge tone={r.state === "approved" ? "up" : r.state === "declined" ? "down" : "warn"}>{r.state}</Badge>
-                {r.state === "approved" && r.signature && (
-                  <Button kind="secondary" disabled={busy} onClick={() => issue(toRequest(r.request), r.signature!).catch((e) => setMsg(<span className="text-bad">{reason(e)}</span>))}>
-                    Issue licence on chain
-                  </Button>
-                )}
               </span>
+              {r.state === "approved" && r.signature && (
+                <button
+                  type="button"
+                  className={btnClass("outline", "self-start")}
+                  disabled={busy}
+                  onClick={() => issue(toRequest(r.request), r.signature!).catch((e) => setMsg(<span className="text-bad">{reason(e)}</span>))}
+                >
+                  Issue licence on chain
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

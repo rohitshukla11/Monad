@@ -1,28 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BrandOnboard } from "@/components/brand/BrandOnboard";
-import { HeroHeadline, HeroLine, InlinePill, Panel } from "@/components/ds";
-import { IconCheck } from "@/components/ds/icons";
+import { AppPage } from "@/components/ds";
 
 export const metadata: Metadata = { title: "License a face" };
 
 export default function BrandOnboardPage() {
   return (
-    <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-end gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
-        <HeroHeadline label="License a face, with consent">
-          <HeroLine>
-            License a face
-            <InlinePill icon={<IconCheck size={18} stroke="#DCF37B" />}>Brands</InlinePill>
-          </HeroLine>
-          <HeroLine muted>with consent</HeroLine>
-        </HeroHeadline>
-      </section>
-      <Panel>
-        <Suspense>
-          <BrandOnboard />
-        </Suspense>
-      </Panel>
-    </>
+    <AppPage narrow title="Set up your brand" description="License a face with consent: your company profile, a domain check and the brand policy.">
+      <Suspense>
+        <BrandOnboard />
+      </Suspense>
+    </AppPage>
   );
 }

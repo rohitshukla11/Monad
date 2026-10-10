@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppPage, SectionTitle, StatCard, StatusPill } from "@/components/ds";
+import { AppPage, Card, StatCard, StatusPill } from "@/components/ds";
 import { Note } from "@/components/ui";
 import { explorer } from "@/lib/chain";
 import { deployment } from "@/lib/deployment";
@@ -24,17 +24,17 @@ export default function Status() {
   const plan = rendererPlan();
   const on = list.filter((i) => i.configured).length;
   return (
-    <AppPage title="What this server runs" kicker="Status">
-      <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
+    <AppPage title="Status" description="What this server runs, and which credential turns each piece on.">
+      <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Chain" value={isLocalFork() ? "Local fork" : "Monad testnet"} note={isLocalFork() ? "An anvil fork of Monad testnet" : "Chain ID 10143"} />
         <StatCard label="History" value={historySource() === "envio" ? "Envio" : "RPC scan"} note={historySource() === "envio" ? "Envio indexer" : "RPC log scan"} />
         <StatCard label="Renderer" value={plan.test ? "Test" : "Live"} note={plan.test ? "DevRenderer (TEST RENDER)" : plan.primary} />
         <StatCard label="Integrations" value={`${on} of ${list.length}`} note="configured" />
       </div>
       <Note tone="dim">Nothing is reported as verified, generated or signed by a provider that is not configured here.</Note>
-      <ul className="m-0 flex list-none flex-col gap-3 p-0">
+      <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
         {list.map((i) => (
-          <li key={i.key} className="grid grid-cols-1 gap-x-6 gap-y-3 rounded-[26px] bg-white p-6 text-[15px] md:grid-cols-[14rem_1fr]">
+          <li key={i.key} className="grid grid-cols-1 gap-x-6 gap-y-2 rounded-[20px] bg-white p-[18px] text-[14px] sm:px-5 md:grid-cols-[14rem_1fr]">
             <div className="flex flex-wrap items-center gap-3 md:flex-col md:items-start">
               <h2 className="m-0 text-[17px] font-semibold">{i.name}</h2>
               {i.configured ? <StatusPill kind="licensed">configured</StatusPill> : <StatusPill kind="waiting">not configured</StatusPill>}
@@ -53,18 +53,17 @@ export default function Status() {
           </li>
         ))}
       </ul>
-      <section id="contracts" aria-labelledby="contracts-title" className="flex scroll-mt-6 flex-col gap-4 pt-4">
-        <SectionTitle id="contracts-title">For AI tools and verifiers</SectionTitle>
-        <p className="m-0 max-w-3xl text-[15px] text-grey">
+      <Card id="contracts" title="For AI tools and verifiers">
+        <p className="m-0 max-w-3xl text-[14px] text-grey">
           Likeness is a protocol; this app is its reference client. Any image tool can check a licence, pay per render and anchor a receipt through the
           same four contracts on Monad, and anyone can check a file.
         </p>
-        <ul className="m-0 grid list-none grid-cols-1 gap-[18px] p-0 sm:grid-cols-2">
+        <ul className="m-0 grid list-none grid-cols-1 gap-[14px] p-0 sm:grid-cols-2">
           {CONTRACTS.flatMap((c) => {
             const a = deployment[c.name];
             if (!a) return [];
             return [
-              <li key={c.name} className="flex flex-col gap-2 rounded-[26px] bg-white p-6">
+              <li key={c.name} className="flex flex-col gap-1.5 rounded-[16px] border border-divider p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="m-0 text-[17px] font-semibold">{c.name}</h3>
                   <a href={explorer.address(a)} target="_blank" rel="noreferrer" className="tnum font-mono text-[13px] text-wait">
@@ -72,12 +71,12 @@ export default function Status() {
                     <span className="sr-only"> (opens MonadVision)</span>
                   </a>
                 </div>
-                <p className="m-0 text-[15px] text-grey">{c.does}</p>
+                <p className="m-0 text-[14px] text-grey">{c.does}</p>
               </li>,
             ];
           })}
         </ul>
-      </section>
+      </Card>
     </AppPage>
   );
 }

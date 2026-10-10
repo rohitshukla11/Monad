@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { pillClass } from "@/components/ds";
+import { btnClass, Card } from "@/components/ds";
 import { useWallet } from "@/components/wallet/WalletProvider";
 import { useBrandReady } from "./useBrandReady";
 
@@ -16,16 +16,13 @@ export function BrandGate({ creator, children }: { creator: string; children: Re
   if (wallet && ready) return <>{children}</>;
   const next = encodeURIComponent(`/market/${creator}#request`);
   return (
-    <section id="request" aria-labelledby="request-title" className="flex scroll-mt-6 flex-col items-start gap-3 rounded-[26px] bg-white p-6 sm:p-8">
-      <h2 id="request-title" className="m-0 text-[clamp(20px,2vw,24px)] font-bold tracking-[-0.02em]">
-        Request a licence
-      </h2>
-      <p className="m-0 max-w-2xl text-[15px] text-grey">
+    <Card id="request" title="Request a licence">
+      <p className="m-0 text-[14px] text-grey">
         Licences are requested by brands with a Likeness brand profile: your company name, logo and domain check, and the brand policy signed by your wallet. It takes about two minutes.
       </p>
-      <Link href={`/brand/onboard?next=${next}`} className={pillClass("ink")}>
+      <Link href={`/brand/onboard?next=${next}`} className={btnClass("lime", "w-full")}>
         {wallet ? "Finish your brand profile" : "Set up your brand"}
       </Link>
-    </section>
+    </Card>
   );
 }

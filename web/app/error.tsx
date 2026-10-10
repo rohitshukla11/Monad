@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { NoticePage, pillClass } from "@/components/ds";
+import { btnClass, NoticePage } from "@/components/ds";
 import { AppHeader } from "@/components/site/AppHeader";
 
 export default function ErrorPage({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => console.error(error), [error]);
   return (
-    <div className="min-h-screen bg-ink text-white">
-      <AppHeader />
-      <main id="main" className="text-ink">
+    <div className="flex min-h-screen flex-col bg-paper">
+      <div className="bg-ink text-white">
+        <AppHeader />
+      </div>
+      <main id="main" className="flex-1 text-ink">
         <NoticePage
           title="Something went wrong"
-          kicker="Error"
+          description="This page could not load."
           action={
-            <button type="button" onClick={() => retry()} className={pillClass("ink")}>
+            <button type="button" onClick={() => retry()} className={btnClass("ink")}>
               Try again
             </button>
           }

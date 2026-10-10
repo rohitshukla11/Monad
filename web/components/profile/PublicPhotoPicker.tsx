@@ -110,7 +110,7 @@ export function PublicPhotoPicker({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Choose your public photo</h2>
+        <h2 className="m-0 text-[18px] font-bold">Choose your public photo</h2>
         <p className="m-0 max-w-3xl text-[15px] text-grey">
           Brands see it in the marketplace. It is checked against your verified face, then published at 512 px with a &quot;not licensed for reuse&quot; watermark.
           You need one to be listed; you can change or remove it any time. You can also use one of your approved samples: it is labelled

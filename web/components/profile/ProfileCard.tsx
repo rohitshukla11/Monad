@@ -12,7 +12,7 @@ import { api, reason } from "@/lib/client/tx";
 import { AGE_RANGES, SAMPLE_SCENES, SAMPLES_PER_DAY, SETTINGS, TONES, type PublicProfile, type StyleTags } from "@/lib/creator-profile";
 import { b64u } from "@/lib/crypto/encoding";
 import { releaseForSamples, sampleContext } from "@/lib/crypto/release";
-import { AiTag, CreatorFace, pillClass, StatusPill } from "@/components/ds";
+import { AiTag, btnClass, Card, CreatorFace, StatusPill } from "@/components/ds";
 import { Note } from "@/components/ui";
 import type { ActiveWallet } from "@/components/wallet/WalletProvider";
 import { PublicPhotoPicker } from "./PublicPhotoPicker";
@@ -20,9 +20,11 @@ import { openReferenceSet } from "./reference";
 
 type MySample = { id: string; scene: string; prompt: string; status: "pending" | "published"; test: boolean; url: string };
 
-export function ProfileCard({ wallet, referenceSetHash }: { wallet: ActiveWallet; referenceSetHash: Hex }) {
+export type ProfileMode = "photo" | "tags" | "samples" | null;
+
+/** The creator's public profile and the signed actions on it, shared by the summary card and the editors. */
+export function useCreatorProfile(wallet: ActiveWallet) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
-  const [mode, setMode] = useState<"photo" | "tags" | "samples" | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const me = wallet.address.toLowerCase();
@@ -52,33 +54,33 @@ export function ProfileCard({ wallet, referenceSetHash }: { wallet: ActiveWallet
       setBusy(false);
     }
   };
+  return { me, profile, busy, msg, load, sign, run };
+}
+export type CreatorProfileState = ReturnType<typeof useCreatorProfile>;
 
+/**
+ * The dashboard's "Public profile" card: photo (change or remove), samples, tags and the listing switch.
+ * The editors open full width under the page header (ProfileEditors).
+ */
+export function ProfileSummary({ state, mode, onMode }: { state: CreatorProfileState; mode: ProfileMode; onMode: (m: ProfileMode) => void }) {
+  const { me, profile, busy, msg, run, sign } = state;
   const listedOn = !!profile?.photo && profile.listed;
+  const tags = [...(profile?.tags.tone ?? []), ...(profile?.tags.setting ?? []), ...(profile?.tags.ageRange ? [profile.tags.ageRange] : [])];
+  const open = (m: Exclude<ProfileMode, null>) => onMode(mode === m ? null : m);
   return (
-    <section id="public-profile" aria-labelledby="public-profile-title" className="flex scroll-mt-6 flex-col gap-5 rounded-[26px] bg-white p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 id="public-profile-title" className="m-0 text-[19px] font-semibold">
-          Public profile
-        </h3>
-        <StatusPill kind={listedOn ? "licensed" : "neutral"}>{listedOn ? "Listed in the marketplace" : "Not listed"}</StatusPill>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-5">
-        <div className="flex flex-col items-center gap-2">
-          <CreatorFace seed={me} photo={profile?.photo} size={96} label={profile?.photo ? (profile.photoAi ? "Your AI-generated public image" : "Your public photo") : undefined} />
-          {profile?.photo && profile.photoAi && <AiTag />}
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          {!profile?.photo && (
-            <p className="m-0 text-[15px] text-wait">Add a public photo to be listed. Until then brands see a silhouette and you are not in the marketplace.</p>
+    <Card id="public-profile" title="Public profile" action={<StatusPill kind={listedOn ? "licensed" : "neutral"}>{listedOn ? "Listed" : "Not listed"}</StatusPill>}>
+      <div className="flex items-center gap-3">
+        <CreatorFace seed={me} photo={profile?.photo} size={72} label={profile?.photo ? (profile.photoAi ? "Your AI-generated public image" : "Your public photo") : undefined} />
+        <div className="flex min-w-0 flex-col gap-1.5 text-[13px]">
+          {profile?.photo ? (
+            <span className="text-grey">{profile.photoAi ? "AI-generated · " : ""}Watermarked · 512 px · matched to your face</span>
+          ) : (
+            <span className="text-wait">Add a public photo to be listed. Until then brands see a silhouette.</span>
           )}
-          <p className="m-0 text-[14px] text-grey">
-            {[...(profile?.tags.tone ?? []), ...(profile?.tags.setting ?? []), profile?.tags.ageRange].filter(Boolean).join(" · ") || "No style tags yet."}{" "}
-            · {profile?.samples ?? 0} published sample{profile?.samples === 1 ? "" : "s"}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setMode(mode === "photo" ? null : "photo")} className={pillClass("ink", "min-h-11 px-4 text-[14px]")}>
-              {profile?.photo ? "Change photo" : "Add a public photo"}
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {profile?.photo && profile.photoAi && <AiTag />}
+            <button type="button" aria-expanded={mode === "photo"} onClick={() => open("photo")} className="min-h-11 font-semibold underline underline-offset-2">
+              {profile?.photo ? "Change" : "Add a public photo"}
             </button>
             {profile?.photo && (
               <button
@@ -89,22 +91,40 @@ export function ProfileCard({ wallet, referenceSetHash }: { wallet: ActiveWallet
                     await api("/api/profiles/photo", { method: "POST", body: JSON.stringify({ address: me, remove: true, auth: await sign("remove public photo", {}) }) });
                   })
                 }
-                className={pillClass("danger", "min-h-11 px-4 text-[14px]")}
+                className="min-h-11 font-semibold text-bad underline underline-offset-2 disabled:opacity-50"
               >
-                Remove photo
+                Remove
               </button>
             )}
-            <button type="button" onClick={() => setMode(mode === "samples" ? null : "samples")} className={pillClass("outline", "min-h-11 px-4 text-[14px]")}>
-              Manage samples
-            </button>
-            <button type="button" onClick={() => setMode(mode === "tags" ? null : "tags")} className={pillClass("outline", "min-h-11 px-4 text-[14px]")}>
-              Edit tags
-            </button>
-          </div>
+          </span>
         </div>
       </div>
 
-      <label className="flex min-h-11 items-center gap-3 text-[15px]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-divider pt-3 text-[13px]">
+        <span className="text-grey">
+          {profile?.samples ?? 0} sample{profile?.samples === 1 ? "" : "s"} · visible to signed-in brands only
+        </span>
+        <button type="button" aria-expanded={mode === "samples"} onClick={() => open("samples")} className="min-h-11 font-semibold underline underline-offset-2">
+          Manage samples
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        {tags.length ? (
+          tags.map((t) => (
+            <span key={t} className="rounded-full bg-paper px-2.5 py-1 text-[12px] capitalize">
+              {t}
+            </span>
+          ))
+        ) : (
+          <span className="text-[13px] text-grey">No style tags yet.</span>
+        )}
+        <button type="button" aria-expanded={mode === "tags"} onClick={() => open("tags")} className="ml-auto min-h-11 text-[13px] font-semibold underline underline-offset-2">
+          Edit tags
+        </button>
+      </div>
+
+      <label className="flex min-h-11 items-center gap-3 text-[14px]">
         <input
           type="checkbox"
           role="switch"
@@ -120,23 +140,62 @@ export function ProfileCard({ wallet, referenceSetHash }: { wallet: ActiveWallet
         />
         List me in the marketplace{!profile?.photo ? " (needs a public photo)" : ""}
       </label>
+      {msg && !mode && <Note tone={busy ? "dim" : "down"}>{msg}</Note>}
+    </Card>
+  );
+}
 
+/** The photo picker, tag editor and samples manager, full width, one at a time. */
+export function ProfileEditors({
+  state,
+  mode,
+  onMode,
+  wallet,
+  referenceSetHash,
+}: {
+  state: CreatorProfileState;
+  mode: ProfileMode;
+  onMode: (m: ProfileMode) => void;
+  wallet: ActiveWallet;
+  referenceSetHash: Hex;
+}) {
+  const { me, profile, busy, msg, run, sign, load } = state;
+  if (!mode) return null;
+  const close = (
+    <button type="button" onClick={() => onMode(null)} className={btnClass("outline", "min-h-11")}>
+      Close
+    </button>
+  );
+  return (
+    <Card id="profile-editor" title={mode === "photo" ? "Public photo" : mode === "tags" ? "Style tags" : "Sample renders"} action={close}>
       {mode === "photo" && (
-        <div className="rounded-[20px] border border-field p-5">
-          <PublicPhotoPicker
-            wallet={wallet}
-            referenceSetHash={referenceSetHash}
-            onDone={() => {
-              setMode(null);
-              void load();
-            }}
-          />
-        </div>
+        <PublicPhotoPicker
+          wallet={wallet}
+          referenceSetHash={referenceSetHash}
+          onDone={() => {
+            onMode(null);
+            void load();
+          }}
+        />
       )}
-      {mode === "tags" && profile && <TagsEditor initial={profile.tags} busy={busy} onSave={(t) => run("Saving tags…", async () => void (await api("/api/profiles/tags", { method: "POST", body: JSON.stringify({ address: me, tags: t, auth: await sign("set style tags", { tone: t.tone.join("|") || "none", setting: t.setting.join("|") || "none", "age range": t.ageRange ?? "none" }) }) })))} />}
+      {mode === "tags" && profile && (
+        <TagsEditor
+          initial={profile.tags}
+          busy={busy}
+          onSave={(t) =>
+            run("Saving tags…", async () => {
+              await api("/api/profiles/tags", {
+                method: "POST",
+                body: JSON.stringify({ address: me, tags: t, auth: await sign("set style tags", { tone: t.tone.join("|") || "none", setting: t.setting.join("|") || "none", "age range": t.ageRange ?? "none" }) }),
+              });
+              onMode(null);
+            })
+          }
+        />
+      )}
       {mode === "samples" && <SamplesManager wallet={wallet} referenceSetHash={referenceSetHash} onChange={() => void load()} />}
-      {msg && <Note tone={busy ? "dim" : "down"}>{msg}</Note>}
-    </section>
+      {msg && mode === "tags" && <Note tone={busy ? "dim" : "down"}>{msg}</Note>}
+    </Card>
   );
 }
 
@@ -167,7 +226,7 @@ function Chips({ legend, options, value, onChange }: { legend: string; options: 
 function TagsEditor({ initial, busy, onSave }: { initial: StyleTags; busy: boolean; onSave: (t: StyleTags) => void }) {
   const [t, setT] = useState<StyleTags>(initial);
   return (
-    <div className="flex flex-col gap-4 rounded-[20px] border border-field p-5">
+    <div className="flex flex-col gap-4">
       <Chips legend="Tone" options={TONES} value={t.tone} onChange={(tone) => setT({ ...t, tone })} />
       <Chips legend="Setting" options={SETTINGS} value={t.setting} onChange={(setting) => setT({ ...t, setting })} />
       <label className="flex max-w-xs flex-col gap-1.5">
@@ -180,7 +239,7 @@ function TagsEditor({ initial, busy, onSave }: { initial: StyleTags; busy: boole
         </select>
       </label>
       <p className="m-0 text-[13px] text-grey">Likeness never asks for or infers ethnicity, religion, health or other sensitive traits.</p>
-      <button type="button" disabled={busy} onClick={() => onSave(t)} className={pillClass("ink", "self-start")}>
+      <button type="button" disabled={busy} onClick={() => onSave(t)} className={btnClass("ink", "self-start")}>
         Save tags
       </button>
     </div>
@@ -250,8 +309,8 @@ function SamplesManager({ wallet, referenceSetHash, onChange }: { wallet: Active
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-[20px] border border-field p-5">
-      <p className="m-0 text-[15px] text-grey">
+    <div className="flex flex-col gap-4">
+      <p className="m-0 text-[14px] text-grey">
         Sample renders show brands how your face works in a scene. They are made from your photos, released for this one request only; you approve each before it is shown.
         Up to {SAMPLES_PER_DAY} a day.
       </p>
@@ -279,10 +338,10 @@ function SamplesManager({ wallet, referenceSetHash, onChange }: { wallet: Active
         <input className="min-h-11 rounded-[14px] border border-field bg-white px-4 text-[15px]" value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Reading on a sofa at home, cosy evening light" />
       </label>
       <div className="flex flex-wrap gap-3">
-        <button type="button" disabled={busy || prompts.length === 0} onClick={create} className={pillClass("lime")}>
+        <button type="button" disabled={busy || prompts.length === 0} onClick={create} className={btnClass("lime")}>
           Create sample renders
         </button>
-        <button type="button" disabled={busy} onClick={() => list().catch((e) => setMsg(reason(e)))} className={pillClass("outline")}>
+        <button type="button" disabled={busy} onClick={() => list().catch((e) => setMsg(reason(e)))} className={btnClass("outline")}>
           {items ? "Refresh" : "Show my samples"}
         </button>
       </div>
@@ -302,15 +361,15 @@ function SamplesManager({ wallet, referenceSetHash, onChange }: { wallet: Active
               <span className="flex flex-wrap gap-2">
                 {s.status === "pending" ? (
                   <>
-                    <button type="button" disabled={busy} onClick={() => decide(s.id, "approve")} className={pillClass("ink", "min-h-11 px-4 text-[14px]")}>
+                    <button type="button" disabled={busy} onClick={() => decide(s.id, "approve")} className={btnClass("ink", "min-h-11 px-4 text-[14px]")}>
                       Approve
                     </button>
-                    <button type="button" disabled={busy} onClick={() => decide(s.id, "reject")} className={pillClass("outline", "min-h-11 px-4 text-[14px]")}>
+                    <button type="button" disabled={busy} onClick={() => decide(s.id, "reject")} className={btnClass("outline", "min-h-11 px-4 text-[14px]")}>
                       Reject
                     </button>
                   </>
                 ) : (
-                  <button type="button" disabled={busy} onClick={() => decide(s.id, "remove")} className={pillClass("danger", "min-h-11 px-4 text-[14px]")}>
+                  <button type="button" disabled={busy} onClick={() => decide(s.id, "remove")} className={btnClass("danger", "min-h-11 px-4 text-[14px]")}>
                     Remove
                   </button>
                 )}
