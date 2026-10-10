@@ -3,30 +3,28 @@
 /**
  * The landing page (Main.dc.html): lime hero with dropping nav and headline, a rising portrait
  * illustration and two endless ribbons; the "Built on" strip; the dark benefits block with counters;
- * the four-step accordion; the tilted creator cards; the testimonial marquee (only with real quotes);
+ * the four-step accordion; the tilted, overlapping creator cards; the testimonial marquee (only with real quotes);
  * the CTA band. Motion is CSS plus an IntersectionObserver hook, and static under reduced motion.
  */
 import Link from "next/link";
 import { useState } from "react";
 import { pillClass, Silhouette, silhouetteFor } from "@/components/ds";
 import { IconArrowLeft, IconArrowRight, IconArrowUpRight, IconChevron } from "@/components/ds/icons";
-import { Reveal, useCountUp, useInView } from "@/components/ds/motion";
+import { useCountUp, useInView } from "@/components/ds/motion";
 import { BUILT_ON, MEASUREMENTS, TESTIMONIALS } from "@/lib/site-content";
 
 export type LandingCreator = { address: string; price: string; meta: string };
-export type ContractRow = { name: string; address: string; url: string; does: string };
 
 const RIBBON_A = ["Advertising", "✳", "Social", "✳", "Editorial", "✳", "Entertainment", "✳", "Product", "✳"];
 const RIBBON_B = ["Approve", "✳", "Get paid per render", "✳", "Revoke any time", "✳", "Verified humans", "✳"];
 
-export function Landing({ creators, contracts }: { creators: LandingCreator[]; contracts: ContractRow[] }) {
+export function Landing({ creators }: { creators: LandingCreator[] }) {
   return (
     <main id="main" className="bg-ink font-sans text-ink">
       <Hero />
       <Stats />
       <HowItWorks />
       <Creators creators={creators} />
-      <ForTools contracts={contracts} />
       <Quotes />
     </main>
   );
@@ -37,10 +35,10 @@ export function Landing({ creators, contracts }: { creators: LandingCreator[]; c
 function Ribbon({ words, dir, className, style }: { words: string[]; dir: "l" | "r"; className: string; style: React.CSSProperties }) {
   const all = [...words, ...words, ...words, ...words];
   return (
-    <div aria-hidden="true" className={`absolute left-[calc(50%-50vw-80px)] right-[calc(50%-50vw-80px)] overflow-hidden py-4 ${className}`} style={style}>
-      <div className={`${dir === "l" ? "lk-track-l" : "lk-track-r"} gap-10 whitespace-nowrap font-display text-[clamp(15px,2vw,22px)] font-bold`}>
+    <div aria-hidden="true" className={`absolute left-[calc(50%-50vw-80px)] right-[calc(50%-50vw-80px)] overflow-hidden py-2.5 sm:py-3 ${className}`} style={style}>
+      <div className={`${dir === "l" ? "lk-track-l" : "lk-track-r"} whitespace-nowrap text-[clamp(14px,1.5vw,19px)] font-semibold`}>
         {all.map((w, i) => (
-          <span key={i} className="pr-10">
+          <span key={i} className={w === "✳" ? "px-6 sm:px-9" : ""}>
             {w}
           </span>
         ))}
@@ -49,66 +47,75 @@ function Ribbon({ words, dir, className, style }: { words: string[]; dir: "l" | 
   );
 }
 
+/** A neutral head-and-shoulders illustration: no face, no photo. */
+function Bust() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 240 260" className="h-full w-full">
+      <path d="M22 260c4-58 44-92 98-92s94 34 98 92z" fill="#2E3036" />
+      <path d="M98 150h44v34c0 12-10 20-22 20s-22-8-22-20z" fill="#C98FA4" />
+      <ellipse cx="120" cy="104" rx="52" ry="60" fill="#D9A0B4" />
+      <path d="M66 98c0-40 26-62 56-62 32 0 54 24 54 58-10-16-30-26-54-26-24 0-44 10-56 30z" fill="#3E2A33" />
+    </svg>
+  );
+}
+
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-lime">
+    <section className="relative overflow-hidden bg-[linear-gradient(160deg,#D4F06A_0%,#E4F7A0_38%,#F2FAD6_100%)]">
       <svg aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        <g fill="none" stroke="#C9E35F" strokeWidth="40" strokeLinecap="round">
-          <path d="M-80 520 C 260 300, 520 760, 900 420 S 1400 260, 1560 360" />
-          <path d="M-80 700 C 300 520, 640 900, 1000 620 S 1420 520, 1560 600" opacity="0.6" />
+        <g fill="none" stroke="#FFFFFF" strokeOpacity="0.55" strokeWidth="34" strokeLinecap="round">
+          <path d="M760 -40 C 940 120, 1180 160, 1500 120" />
+          <path d="M820 120 C 1000 260, 1240 300, 1520 260" strokeOpacity="0.35" />
+          <path d="M-60 560 C 200 470, 420 520, 600 640" strokeOpacity="0.3" />
         </g>
       </svg>
 
-      <header className="lk-drop relative mx-auto flex max-w-[1320px] flex-wrap items-center gap-x-7 gap-y-1 px-4 py-[18px] sm:px-8 sm:py-[22px]">
-        <Link href="/" className="font-display text-[20px] font-black tracking-[0.02em] text-ink no-underline sm:text-[22px]">
+      <header className="lk-drop relative mx-auto flex max-w-[1320px] flex-wrap items-center gap-x-7 gap-y-1 px-4 py-4 sm:px-8 sm:py-5">
+        <Link href="/" className="font-display text-[18px] font-black tracking-[0.02em] text-ink no-underline sm:text-[20px]">
           LIKENESS
         </Link>
-        <nav aria-label="Main" className="order-3 flex w-full flex-wrap gap-x-4 text-[14px] font-medium sm:gap-x-[30px] sm:text-[15px] md:order-none md:w-auto md:flex-1">
+        <nav aria-label="Main" className="order-3 flex w-full flex-wrap gap-x-4 text-[13px] font-medium sm:gap-x-7 sm:text-[14px] md:order-none md:w-auto md:flex-1">
           <a href="#how" className="py-3 text-ink no-underline hover:underline">
             How it works
           </a>
           <Link href="/market" className="py-3 text-ink no-underline hover:underline">
             Creators
           </Link>
-          <a href="#tools" className="py-3 text-ink no-underline hover:underline">
+          <Link href="/status#contracts" className="py-3 text-ink no-underline hover:underline">
             For AI tools
-          </a>
+          </Link>
           <Link href="/verify" className="py-3 text-ink no-underline hover:underline">
             Verify
           </Link>
         </nav>
-        <div className="ml-auto flex items-center gap-5">
-          <Link href="/dashboard" className="hidden py-3 text-[15px] font-medium text-ink no-underline hover:underline sm:inline">
+        <div className="ml-auto flex items-center gap-4">
+          <Link href="/dashboard" className="hidden py-3 text-[14px] font-medium text-ink no-underline hover:underline sm:inline">
             Log in
           </Link>
-          <Link href="/onboard" className={pillClass("ink", "min-h-12 px-[22px]")}>
+          <Link href="/onboard" className={pillClass("ink", "px-5 text-[14px]")}>
             Become a creator
           </Link>
         </div>
       </header>
 
-      <div className="relative mx-auto h-[560px] max-w-[1320px] px-4 pt-6 sm:h-[640px] sm:px-8">
-        <h1 className="lk-drop absolute left-4 right-4 top-[30px] m-0 text-center font-display text-[clamp(40px,10.5vw,152px)] font-black leading-[0.95] tracking-[-0.02em] text-ink sm:left-8 sm:right-8">
+      <div className="relative mx-auto h-[330px] max-w-[1320px] px-4 sm:h-[600px] sm:px-8">
+        <h1 className="lk-drop relative z-0 m-0 pt-3 text-center font-display text-[clamp(32px,9.6vw,146px)] font-black leading-[0.92] tracking-[-0.02em] text-ink">
           <span className="lk-texture">YOUR FACE</span>
           <br />
           YOUR TERMS
         </h1>
         <div
-          aria-hidden="true"
-          className="lk-rise absolute left-1/2 top-[130px] flex h-[290px] w-[220px] items-end justify-center overflow-hidden rounded-t-[180px] bg-[#F4C9D6] sm:top-[110px] sm:h-[clamp(300px,32vw,460px)] sm:w-[clamp(230px,25vw,360px)]"
+          className="lk-rise absolute left-1/2 top-[64px] h-[236px] w-[218px] sm:top-[150px] sm:h-[clamp(280px,30vw,440px)] sm:w-[clamp(258px,27.7vw,406px)]"
           style={{ transform: "translateX(-50%)" }}
         >
-          <Silhouette fill="#C27A92" width="92%" height="87%" />
+          <Bust />
         </div>
-        <span className="absolute left-1/2 top-[380px] z-10 max-w-[calc(100%-32px)] -translate-x-1/2 rounded-full bg-ink px-[18px] py-2.5 text-center text-[13px] font-semibold text-lime sm:top-[430px] sm:whitespace-nowrap sm:text-[14px]">
-          Illustration · verified humans only
-        </span>
-        <Ribbon words={RIBBON_A} dir="l" className="top-[440px] bg-violet text-white sm:top-[508px]" style={{ transform: "rotate(-5deg)" }} />
-        <Ribbon words={RIBBON_B} dir="r" className="top-[488px] bg-ink text-lime sm:top-[548px]" style={{ transform: "rotate(4deg)" }} />
+        <Ribbon words={RIBBON_A} dir="l" className="top-[236px] z-10 bg-violet text-white sm:top-[476px]" style={{ transform: "rotate(4deg)" }} />
+        <Ribbon words={RIBBON_B} dir="r" className="top-[266px] z-10 bg-[#4C5230] text-white sm:top-[514px]" style={{ transform: "rotate(-3deg)" }} />
       </div>
 
-      <div className="relative mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-x-9 gap-y-4 px-4 pb-9 pt-[70px] font-display text-[clamp(16px,1.6vw,20px)] font-bold text-[#3D4519] sm:px-8">
-        <span className="font-sans text-[14px] font-semibold text-ink">Built on</span>
+      <div className="relative mx-auto flex max-w-[1180px] flex-wrap items-center justify-center gap-x-[clamp(24px,4.4vw,64px)] gap-y-3 px-4 pb-8 pt-12 text-[clamp(15px,1.4vw,18px)] font-semibold text-[#5F636B] sm:px-8">
+        <span className="text-[13px] font-medium text-[#5F636B]">Built on</span>
         {BUILT_ON.map((b) => (
           <span key={b}>{b}</span>
         ))}
@@ -119,10 +126,11 @@ function Hero() {
 
 // ---------------------------------------------------------------- dark benefits block
 
-function Toggle({ on = "#DCF37B", track = "#8B5CF6" }: { on?: string; track?: string }) {
+function Toggle() {
   return (
-    <span aria-hidden="true" className="inline-flex h-[52px] w-[110px] items-center justify-end rounded-full px-1.5" style={{ background: track }}>
-      <span className="h-10 w-10 rounded-full" style={{ background: on }} />
+    <span aria-hidden="true" className="inline-flex h-[42px] w-[96px] items-center gap-1 rounded-full bg-[linear-gradient(90deg,#8B5CF6,#7CC4F0)] px-1">
+      <span className="h-[34px] w-[34px] rounded-full bg-[#ECE6FD]" />
+      <span className="h-[34px] w-[34px] rounded-full bg-[#CFE6F5]" />
     </span>
   );
 }
@@ -144,7 +152,7 @@ function Stats() {
           CONSENT ATTACHED
         </h2>
         <div className="flex flex-wrap gap-5">
-          <article className={`rv${seen ? " in" : ""} relative flex min-h-[340px] min-w-0 flex-[2_1_560px] flex-col gap-4 overflow-hidden rounded-[30px] bg-lavender p-8 text-ink`} style={{ transitionDelay: ".1s" }}>
+          <article className={`rv${seen ? " in" : ""} relative flex min-h-[340px] min-w-0 flex-[2_1_560px] flex-col gap-4 overflow-hidden rounded-[30px] bg-[linear-gradient(135deg,#E2D8FF_0%,#F3EFFF_60%,#FFFFFF_100%)] p-8 text-ink`} style={{ transitionDelay: ".1s" }}>
             <span aria-hidden="true" className="flex h-[42px] w-[72px] items-center gap-1 rounded-full border-2 border-ink px-1">
               <span className="h-8 w-8 rounded-full bg-ink" />
               <span className="h-8 w-8 rounded-full border-2 border-ink bg-lime" />
@@ -166,7 +174,7 @@ function Stats() {
             </p>
           </article>
           <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-5">
-            <article className={`rv${seen ? " in" : ""} flex flex-1 flex-col gap-1.5 rounded-[30px] bg-lime p-7 text-ink`} style={{ transitionDelay: ".25s" }} title={MEASUREMENTS.registerMs.source}>
+            <article className={`rv${seen ? " in" : ""} flex flex-1 flex-col gap-1.5 rounded-[30px] bg-[linear-gradient(135deg,#DCF37B,#F0FAC8)] p-7 text-ink`} style={{ transitionDelay: ".25s" }} title={MEASUREMENTS.registerMs.source}>
               <span className="tnum font-display text-[clamp(40px,5vw,52px)] font-black leading-none">{ms} MS</span>
               <span className="font-display text-[17px] font-bold leading-snug">TO REGISTER A CREATOR ON MONAD</span>
               <span className="text-[13px] text-[#3E4148]">Measured on Monad testnet, send to receipt.</span>
@@ -274,12 +282,10 @@ function HowItWorks() {
 
 // ---------------------------------------------------------------- creators
 
-const FRAMES = ["#F6C9DD", "#DCF37B", "#C9B8FA", "#BFE3C9"];
-const TILTS: [string, string][] = [
-  ["-5deg", "0px"],
-  ["2deg", "40px"],
-  ["-3deg", "-10px"],
-];
+const FRAMES = ["#F6C9DD", "#BFE3C9", "#C9B8FA", "#DCF37B"];
+const TILTS = ["-7deg", "-3deg", "6deg"];
+/** Grid placement at sm and up: first card tall on the left, heading top right, the others below it. */
+const PLACE = ["sm:col-start-1 sm:row-span-2 sm:row-start-1", "sm:col-start-2 sm:row-start-2 sm:-ml-6 sm:mt-6", "sm:col-start-3 sm:row-start-2 sm:-mt-4"];
 
 function Creators({ creators }: { creators: LandingCreator[] }) {
   const [shift, setShift] = useState(0);
@@ -296,97 +302,75 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
           <path d="M600 900 L 1300 -100 L 1380 -100 L 680 900 Z" />
         </g>
       </svg>
-      <div ref={ref} className="relative mx-auto flex max-w-[1180px] flex-col gap-10 px-4 pb-[120px] pt-24 sm:px-8">
-        <div className={`rv${seen ? " in" : ""} flex flex-wrap items-center justify-center gap-4`}>
-          <h2 className="m-0 font-display text-[clamp(28px,4vw,44px)] font-extrabold leading-[1.2]">MEET THE CREATORS</h2>
-          <button
-            type="button"
-            aria-label="Previous creator"
-            disabled={!canRotate}
-            onClick={() => setShift((s) => (s + slots.length - 1) % slots.length)}
-            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink bg-transparent disabled:opacity-40"
-          >
-            <IconArrowLeft size={20} />
-          </button>
-          <button
-            type="button"
-            aria-label="Next creator"
-            disabled={!canRotate}
-            onClick={() => setShift((s) => (s + 1) % slots.length)}
-            className="flex h-12 w-12 items-center justify-center rounded-full border-0 bg-ink text-white disabled:opacity-40"
-          >
-            <IconArrowRight size={20} />
-          </button>
+      <div ref={ref} className="relative mx-auto grid max-w-[1120px] grid-cols-1 gap-8 px-4 pb-24 pt-20 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-6 sm:px-8">
+        <div className={`rv${seen ? " in" : ""} flex flex-wrap items-end gap-4 sm:col-span-2 sm:col-start-2 sm:row-start-1 sm:self-start sm:pl-6 sm:pt-8`}>
+          <h2 className="m-0 font-display text-[clamp(26px,3.4vw,40px)] font-extrabold leading-[1.15]">
+            MEET THE{" "}
+            <span aria-hidden="true" className="inline-flex h-10 w-10 items-end justify-center overflow-hidden rounded-full bg-lavender align-middle">
+              <Silhouette fill="#8B5CF6" width={34} height={38} />
+            </span>
+            <br />
+            CREATORS
+          </h2>
+          <span className="flex gap-1 pb-1">
+            <button
+              type="button"
+              aria-label="Previous creator"
+              disabled={!canRotate}
+              onClick={() => setShift((s) => (s + slots.length - 1) % slots.length)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border-0 bg-transparent disabled:opacity-40"
+            >
+              <IconArrowLeft size={22} />
+            </button>
+            <button
+              type="button"
+              aria-label="Next creator"
+              disabled={!canRotate}
+              onClick={() => setShift((s) => (s + 1) % slots.length)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border-0 bg-transparent disabled:opacity-40"
+            >
+              <IconArrowRight size={22} />
+            </button>
+          </span>
         </div>
-        <div className="grid grid-cols-1 gap-7 sm:grid-cols-3">
-          {shown.map((cr, i) => {
-            const transform = seen ? `rotate(${TILTS[i][0]}) translateY(${TILTS[i][1]})` : "translateX(160px) rotate(8deg)";
-            const style = { transform, transitionDelay: `${0.1 + i * 0.18}s`, background: FRAMES[(i + shift) % FRAMES.length] };
-            if (!cr)
-              return (
-                <Link key={`empty-${i}`} href="/onboard" className={`card-in${seen ? " in" : ""} relative block rounded-[30px] p-3.5 text-ink no-underline`} style={style}>
-                  <div className="flex aspect-[4/5] flex-col items-center justify-center gap-3 rounded-[22px] border-2 border-dashed border-ink/40 bg-white/50 p-6 text-center">
-                    <span className="font-display text-[15px] font-bold">YOUR FACE HERE</span>
-                    <span className="text-[14px] text-[#3E4148]">Verify once, set your terms, and get paid per render.</span>
-                    <span className={pillClass("ink")}>Become a creator</span>
-                  </div>
-                </Link>
-              );
-            const s = silhouetteFor(cr.address);
+        {shown.map((cr, i) => {
+          const transform = seen ? `rotate(${TILTS[i]})` : "translateX(160px) rotate(8deg)";
+          const style = { transform, transitionDelay: `${0.1 + i * 0.18}s`, background: FRAMES[(i + shift) % FRAMES.length] };
+          const cls = `card-in${seen ? " in" : ""} relative block self-start rounded-[28px] p-3 text-ink no-underline shadow-[0_18px_40px_rgba(18,19,22,0.12)] ${PLACE[i]}`;
+          if (!cr)
             return (
-              <Link key={cr.address + i} href={`/market/${cr.address}`} className={`card-in${seen ? " in" : ""} relative block rounded-[30px] p-3.5 text-ink no-underline`} style={style}>
-                <span className="absolute left-[22px] top-[22px] z-10 rounded-full bg-white px-3 py-1.5 font-display text-[12px] font-bold">{cr.price} / RENDER</span>
-                <span aria-hidden="true" className="absolute right-[22px] top-[22px] z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/70">
-                  <IconArrowUpRight size={18} />
-                </span>
-                <div className="flex aspect-[4/5] items-end justify-center overflow-hidden rounded-[22px]" style={{ background: s.tint }}>
-                  <Silhouette fill={s.sil} width="82%" height="92%" />
-                </div>
-                <div className="absolute bottom-[26px] left-[26px] flex flex-col rounded-2xl bg-white px-3.5 py-2.5">
-                  <span className="tnum font-display text-[15px] font-bold">
-                    {cr.address.slice(0, 6)}…{cr.address.slice(-4)}
-                  </span>
-                  <span className="text-[12px] text-grey">{cr.meta}</span>
+              <Link key={`empty-${i}`} href="/onboard" className={cls} style={style}>
+                <div className="flex aspect-[4/5] flex-col items-center justify-center gap-3 rounded-[20px] border-2 border-dashed border-ink/40 bg-white/50 p-6 text-center">
+                  <span className="font-display text-[15px] font-bold">YOUR FACE HERE</span>
+                  <span className="text-[14px] text-[#3E4148]">Verify once, set your terms, and get paid per render.</span>
+                  <span className={pillClass("ink")}>Become a creator</span>
                 </div>
               </Link>
             );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------- for AI tools
-
-function ForTools({ contracts }: { contracts: ContractRow[] }) {
-  return (
-    <section id="tools" className="scroll-mt-4 bg-paper">
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-8 px-4 py-24 sm:px-8">
-        <Reveal>
-          <h2 className="m-0 font-display text-[clamp(28px,4vw,44px)] font-extrabold leading-[1.2]">FOR AI TOOLS AND VERIFIERS</h2>
-          <p className="mt-4 max-w-3xl text-[16px] leading-relaxed text-[#3E4148]">
-            Likeness is a protocol; this app is its reference client. Any image tool can check a licence, pay per render and anchor a receipt
-            through the same four contracts on Monad, and anyone can check a file.
-          </p>
-        </Reveal>
-        <div className="grid gap-5 sm:grid-cols-2">
-          {contracts.map((c, i) => (
-            <Reveal key={c.name} delay={0.08 * i} as="article" className="flex flex-col gap-2 rounded-[26px] bg-white p-6">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="m-0 text-[18px] font-semibold">{c.name}</h3>
-                <a href={c.url} target="_blank" rel="noreferrer" className="tnum font-mono text-[13px] text-wait">
-                  {c.address.slice(0, 8)}…{c.address.slice(-4)}
-                  <span className="sr-only"> (opens MonadVision)</span>
-                </a>
+          const s = silhouetteFor(cr.address);
+          return (
+            <Link key={cr.address + i} href={`/market/${cr.address}`} className={cls} style={style}>
+              <span className="absolute left-5 top-5 z-10 rounded-full bg-ink px-3 py-1.5 font-display text-[11px] font-bold text-lime">{cr.price} / RENDER</span>
+              <span aria-hidden="true" className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/70">
+                <IconArrowUpRight size={16} />
+              </span>
+              <div className="flex aspect-[4/5] items-end justify-center overflow-hidden rounded-[20px]" style={{ background: s.tint }}>
+                <Silhouette fill={s.sil} width="82%" height="92%" />
               </div>
-              <p className="m-0 text-[15px] text-grey">{c.does}</p>
-            </Reveal>
-          ))}
-        </div>
-        <Link href="/verify" className={pillClass("ink", "self-start")}>
-          Verify a file
-        </Link>
+              <div className="absolute bottom-6 left-6 right-6 flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2.5">
+                <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-end justify-center overflow-hidden rounded-full" style={{ background: s.tint }}>
+                  <Silhouette fill={s.sil} width={28} height={32} />
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="tnum font-display text-[14px] font-bold">
+                    {cr.address.slice(0, 6)}…{cr.address.slice(-4)}
+                  </span>
+                  <span className="truncate text-[12px] text-grey">{cr.meta}</span>
+                </span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -439,13 +423,13 @@ function Quotes() {
           </>
         )}
         <div className="px-4 sm:px-8">
-          <div className={`${c("rv")} mx-auto flex max-w-[1116px] flex-wrap items-center justify-between gap-5 rounded-[28px] bg-lime px-[34px] py-[30px]`}>
-            <h2 className="m-0 font-display text-[clamp(20px,2.6vw,28px)] font-extrabold leading-[1.25]">
+          <div className={`${c("rv")} relative mx-auto flex max-w-[1116px] flex-wrap items-center justify-between gap-5 overflow-hidden rounded-[24px] bg-[linear-gradient(100deg,#DCF37B_0%,#EAF8B4_55%,#F5FBE0_100%)] px-[30px] py-[26px]`}>
+            <h2 className="m-0 font-display text-[clamp(18px,2.2vw,24px)] font-extrabold leading-[1.25]">
               READY TO LICENSE YOUR FACE
               <br />
               ON YOUR TERMS?
             </h2>
-            <Link href="/onboard" className={pillClass("ink", "min-h-[54px] px-7")}>
+            <Link href="/onboard" className={pillClass("ink", "px-6 text-[14px]")}>
               Get started
             </Link>
           </div>

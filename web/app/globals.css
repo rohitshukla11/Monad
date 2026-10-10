@@ -141,7 +141,15 @@ a {
 
 /* Striped fill inside the hero's first line. */
 .lk-texture {
-  background: repeating-linear-gradient(115deg, #121316 0 18px, #3b3f48 18px 26px, #121316 26px 44px, #8b5cf6 44px 50px);
+  /* A painterly multicolour fill on a dark base, standing in for the mockup's photo texture (no stock photos). */
+  background:
+    radial-gradient(ellipse 14% 60% at 12% 35%, #f25f5c 0 30%, transparent 70%),
+    radial-gradient(ellipse 12% 70% at 30% 70%, #8b5cf6 0 35%, transparent 72%),
+    radial-gradient(ellipse 10% 55% at 47% 25%, #f6a04d 0 30%, transparent 70%),
+    radial-gradient(ellipse 13% 65% at 64% 65%, #4f8de0 0 32%, transparent 72%),
+    radial-gradient(ellipse 11% 60% at 80% 30%, #c27a92 0 30%, transparent 70%),
+    radial-gradient(ellipse 12% 70% at 93% 70%, #8b5cf6 0 30%, transparent 72%),
+    linear-gradient(100deg, #121316, #2a2140 50%, #121316);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

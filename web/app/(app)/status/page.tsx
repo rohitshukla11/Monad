@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { AppPage, StatCard, StatusPill } from "@/components/ds";
+import { AppPage, SectionTitle, StatCard, StatusPill } from "@/components/ds";
 import { Note } from "@/components/ui";
+import { explorer } from "@/lib/chain";
+import { deployment } from "@/lib/deployment";
 import { isLocalFork } from "@/lib/server/chain";
 import { historySource } from "@/lib/server/index";
 import { integrations } from "@/lib/server/integrations";
@@ -8,6 +10,13 @@ import { rendererPlan } from "@/lib/server/render";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Status" };
+
+const CONTRACTS: { name: "CreatorRegistry" | "LicenseRegistry" | "LicenseEscrow" | "ReceiptAnchor"; does: string }[] = [
+  { name: "CreatorRegistry", does: "Didit-backed attestation (ID 18+, liveness, face match), terms, payout and one-click revocation. Hashes only." },
+  { name: "LicenseRegistry", does: "Non-transferable, expiring licences, issued against the creator's signature or inside their auto-approve terms." },
+  { name: "LicenseEscrow", does: "USDC per licence. Each render pays the creator and anchors a receipt in one transaction; the rest is refundable." },
+  { name: "ReceiptAnchor", does: "One receipt per delivered file, keyed by its sha256. Anyone can look a file up." },
+];
 
 /** What this server can and cannot do right now, and which credential turns each piece on. */
 export default function Status() {
@@ -44,6 +53,31 @@ export default function Status() {
           </li>
         ))}
       </ul>
+      <section id="contracts" aria-labelledby="contracts-title" className="flex scroll-mt-6 flex-col gap-4 pt-4">
+        <SectionTitle id="contracts-title">For AI tools and verifiers</SectionTitle>
+        <p className="m-0 max-w-3xl text-[15px] text-grey">
+          Likeness is a protocol; this app is its reference client. Any image tool can check a licence, pay per render and anchor a receipt through the
+          same four contracts on Monad, and anyone can check a file.
+        </p>
+        <ul className="m-0 grid list-none grid-cols-1 gap-[18px] p-0 sm:grid-cols-2">
+          {CONTRACTS.flatMap((c) => {
+            const a = deployment[c.name];
+            if (!a) return [];
+            return [
+              <li key={c.name} className="flex flex-col gap-2 rounded-[26px] bg-white p-6">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="m-0 text-[17px] font-semibold">{c.name}</h3>
+                  <a href={explorer.address(a)} target="_blank" rel="noreferrer" className="tnum font-mono text-[13px] text-wait">
+                    {a.slice(0, 8)}…{a.slice(-4)}
+                    <span className="sr-only"> (opens MonadVision)</span>
+                  </a>
+                </div>
+                <p className="m-0 text-[15px] text-grey">{c.does}</p>
+              </li>,
+            ];
+          })}
+        </ul>
+      </section>
     </AppPage>
   );
 }

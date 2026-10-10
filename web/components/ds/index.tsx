@@ -117,7 +117,7 @@ export function TagChip({ children }: { children: ReactNode }) {
 /** The dark top of an app page. Children are usually a HeroHeadline and, optionally, a hero card. */
 export function PageHero({ children }: { children: ReactNode }) {
   return (
-    <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[110px] pt-8 text-white sm:px-8 sm:pt-11">
+    <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
       {children}
     </section>
   );
@@ -126,31 +126,31 @@ export function PageHero({ children }: { children: ReactNode }) {
 /** Big multi-line app headline (Poppins 700). Lines are separate elements; pass pills and stacks inline. */
 export function HeroHeadline({ children, label, className = "flex-[999_1_640px]" }: { children: ReactNode; label?: string; className?: string }) {
   return (
-    <h1 aria-label={label} className={`m-0 flex min-w-0 flex-col gap-1 text-[clamp(44px,8.5vw,88px)] font-bold leading-[1.05] tracking-[-0.03em] ${className}`}>
+    <h1 aria-label={label} className={`m-0 flex min-w-0 flex-col gap-1 text-[clamp(30px,4.6vw,52px)] font-bold leading-[1.05] tracking-[-0.03em] ${className}`}>
       {children}
     </h1>
   );
 }
 
 export function HeroLine({ children, muted }: { children: ReactNode; muted?: boolean }) {
-  return <span className={`flex flex-wrap items-center gap-x-5 ${muted ? "text-[#8C9099]" : ""}`}>{children}</span>;
+  return <span className={`flex flex-wrap items-center gap-x-3.5 ${muted ? "text-[#8C9099]" : ""}`}>{children}</span>;
 }
 
 /** The outlined lime pill that sits inside a headline line. */
 export function InlinePill({ children, icon }: { children?: ReactNode; icon?: ReactNode }) {
   return (
-    <span className="inline-flex h-[clamp(44px,7vw,66px)] items-center gap-2.5 rounded-full border-[3px] border-lime px-5 text-[clamp(14px,1.6vw,20px)] font-semibold tracking-normal text-lime">
+    <span className="inline-flex h-[clamp(32px,3.6vw,44px)] items-center gap-2.5 rounded-full border-2 border-lime px-4 text-[clamp(13px,1.1vw,15px)] font-semibold tracking-normal text-lime">
       {icon}
       {children}
     </span>
   );
 }
 
-export function AvatarStack({ seeds, size = 76 }: { seeds: string[]; size?: number }) {
+export function AvatarStack({ seeds, size = 46 }: { seeds: string[]; size?: number }) {
   return (
     <span aria-hidden="true" className="inline-flex">
       {seeds.map((s, i) => (
-        <span key={s + i} style={{ marginLeft: i ? -16 : 0 }}>
+        <span key={s + i} style={{ marginLeft: i ? -12 : 0 }}>
           <Avatar seed={s} size={size} ring="#121316" />
         </span>
       ))}
@@ -171,10 +171,10 @@ export function Panel({ children, className = "" }: { children: ReactNode; class
 export function AppPage({ title, kicker, aside, children }: { title: ReactNode; kicker?: ReactNode; aside?: ReactNode; children: ReactNode }) {
   return (
     <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-end justify-between gap-6 px-4 pb-[96px] pt-8 text-white sm:px-8 sm:pt-11">
+      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-end justify-between gap-6 px-4 pb-[80px] pt-7 text-white sm:px-8 sm:pt-9">
         <div className="space-y-3">
           {kicker && <p className="text-[15px] text-grey-dark">{kicker}</p>}
-          <h1 className="m-0 text-[clamp(40px,6vw,64px)] font-bold leading-[1.05] tracking-[-0.03em]">{title}</h1>
+          <h1 className="m-0 text-[clamp(28px,3.6vw,40px)] font-bold leading-[1.05] tracking-[-0.03em]">{title}</h1>
         </div>
         {aside}
       </section>
@@ -199,10 +199,10 @@ export function NoticePage({ title, children, action, kicker }: { title: string;
   );
 }
 
-export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+export function SectionTitle({ children, action, id }: { children: ReactNode; action?: ReactNode; id?: string }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-      <h2 className="m-0 text-[clamp(24px,3vw,30px)] font-bold tracking-[-0.02em]">{children}</h2>
+      <h2 id={id} className="m-0 text-[clamp(20px,2vw,24px)] font-bold tracking-[-0.02em]">{children}</h2>
       {action}
     </div>
   );
@@ -226,7 +226,7 @@ export function CardRings({ stroke = "#121316", opacity = 1 }: { stroke?: string
 export function LimeCard({ children, label, tone = "lime" }: { children: ReactNode; label: string; tone?: "lime" | "coral" | "grey" }) {
   const bg = tone === "lime" ? "bg-lime" : tone === "coral" ? "bg-coral" : "bg-[#D9DCE2]";
   return (
-    <article aria-label={label} className={`relative flex min-w-0 flex-[1_1_400px] flex-col gap-3.5 overflow-hidden rounded-[30px] p-[30px] text-ink ${bg}`}>
+    <article aria-label={label} className={`relative flex min-w-0 flex-[1_1_400px] flex-col gap-3 overflow-hidden rounded-[26px] p-6 text-ink ${bg}`}>
       <CardRings />
       <div className="relative flex h-full flex-col gap-3.5">{children}</div>
     </article>
@@ -237,7 +237,7 @@ export function StatCard({ label, value, note }: { label: string; value: ReactNo
   return (
     <div className="flex flex-col gap-1.5 rounded-[26px] bg-white p-6">
       <span className="text-[15px] text-grey">{label}</span>
-      <span className="tnum text-[clamp(28px,3vw,36px)] font-bold leading-tight">{value}</span>
+      <span className="tnum text-[clamp(22px,2.2vw,28px)] font-bold leading-tight">{value}</span>
       {note && <span className="text-[13px] text-grey">{note}</span>}
     </div>
   );

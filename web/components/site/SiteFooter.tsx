@@ -28,7 +28,7 @@ export function SiteFooter() {
             <Link href="/market" className="text-grey-dark hover:text-white">
               Creators
             </Link>
-            <Link href="/#tools" className="text-grey-dark hover:text-white">
+            <Link href="/status#contracts" className="text-grey-dark hover:text-white">
               Contracts
             </Link>
             <a href={SOURCE_URL} className="text-grey-dark hover:text-white" target="_blank" rel="noreferrer">
