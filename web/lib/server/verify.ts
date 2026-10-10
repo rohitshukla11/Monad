@@ -47,7 +47,7 @@ export type Verification = {
   creator: Pick<CreatorView, "address" | "trust" | "verifiedAt" | "upgradedAt"> | null;
   revoked: { at: number; tx: Hex; how: string } | null;
   /** For a profile photo or sample render Likeness published: what it is and whether it is still up. */
-  preview: { kind: "profile-photo" | "sample-render"; status: "pending" | "live" | "removed"; publishedAt: number; removedAt?: number } | null;
+  preview: { kind: "profile-photo" | "sample-render"; status: "pending" | "live" | "removed"; publishedAt: number; removedAt?: number; aiGenerated?: boolean } | null;
   notes: string[];
 };
 
@@ -70,11 +70,14 @@ export async function verifyHash(assetHash: Hex, manifest: ManifestRead | null =
       const creatorView = rec ? await readCreatorWithHistory(rec.owner as Hex) : manifest?.present && manifest.preview ? await readCreatorWithHistory(manifest.preview.creator as Hex) : null;
       if (!rec) notes.push("Recognised from its content credential; these exact bytes are not on file (it was edited or re-encoded).");
       if (rec?.status === "removed") notes.push("The creator has since taken it down.");
+      const ai = kind === "profile-photo" && (!!rec?.ai || (!!manifest?.present && !!manifest.preview?.aiGenerated));
       return {
         verdict: kind === "profile-photo" ? "ProfilePhoto" : "Sample",
         headline:
           kind === "profile-photo"
-            ? "Profile photo of a Likeness creator. It is a preview, not a licensed asset: no licence to use this face comes with it."
+            ? ai
+              ? "AI-generated profile image of a Likeness creator. It is a preview, not a licensed asset: no licence to use this face comes with it."
+              : "Profile photo of a Likeness creator. It is a preview, not a licensed asset: no licence to use this face comes with it."
             : "Sample render: not a licence to use this face. Made by Likeness for the creator's profile.",
         assetHash,
         receipt: null,
@@ -83,7 +86,7 @@ export async function verifyHash(assetHash: Hex, manifest: ManifestRead | null =
         licence: null,
         creator: creatorView ? { address: creatorView.address, trust: creatorView.trust, verifiedAt: creatorView.verifiedAt, upgradedAt: creatorView.upgradedAt } : null,
         revoked: null,
-        preview: rec ? { kind: rec.kind as "profile-photo" | "sample-render", status: rec.status, publishedAt: rec.createdAt, removedAt: rec.removedAt } : null,
+        preview: rec ? { kind: rec.kind as "profile-photo" | "sample-render", status: rec.status, publishedAt: rec.createdAt, removedAt: rec.removedAt, ...(ai ? { aiGenerated: true } : {}) } : null,
         notes,
       };
     }

@@ -94,6 +94,8 @@ export function embedManifest(bytes: Uint8Array, mime: "image/jpeg" | "image/png
 export const PREVIEW_ASSERTION = "xyz.likeness.preview";
 export type PreviewAssertion = {
   kind: "profile-photo" | "sample-render";
+  /** A profile image made by Likeness's renderer (from one of the creator's approved samples), not a photo. */
+  aiGenerated?: boolean;
   statement: string;
   creator: string;
   creatorRegistry: string;
@@ -106,7 +108,14 @@ const PREVIEW_STATEMENT: Record<PreviewAssertion["kind"], string> = {
 };
 
 export function embedPreviewManifest(bytes: Uint8Array, mime: "image/jpeg" | "image/png", p: Omit<PreviewAssertion, "statement">, model?: string): Uint8Array {
-  const a: PreviewAssertion = { ...p, statement: PREVIEW_STATEMENT[p.kind] };
+  const ai = p.kind === "sample-render" || !!p.aiGenerated;
+  const a: PreviewAssertion = {
+    ...p,
+    statement:
+      p.kind === "profile-photo" && p.aiGenerated
+        ? "AI-generated profile image of a Likeness creator, made by Likeness from the creator's own photos. Not a licensed asset: no licence to use this face comes with it."
+        : PREVIEW_STATEMENT[p.kind],
+  };
   const builder = Builder.withJson({
     claim_generator_info: [{ name: "Likeness preview service", version: "0.1.0" }],
     title: `likeness-${p.kind}.${mime === "image/png" ? "png" : "jpg"}`,
@@ -116,7 +125,7 @@ export function embedPreviewManifest(bytes: Uint8Array, mime: "image/jpeg" | "im
         label: "c2pa.actions",
         data: {
           actions: [
-            p.kind === "sample-render"
+            ai
               ? { action: "c2pa.created", digitalSourceType: SOURCE_TYPE.model, softwareAgent: { name: model ?? "Likeness sample renderer" } }
               : {
                   action: "c2pa.created",

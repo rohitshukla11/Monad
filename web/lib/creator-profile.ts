@@ -37,6 +37,8 @@ export type PublicProfile = {
   address: string;
   /** Public photo URL (512 px, watermarked), or null: show a silhouette. */
   photo: string | null;
+  /** The public photo is an AI-generated image (one of the creator's approved samples), not a photo. */
+  photoAi: boolean;
   tags: StyleTags;
   listed: boolean;
   /** Number of approved sample renders (the images themselves need a brand session). */

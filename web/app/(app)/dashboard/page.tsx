@@ -9,7 +9,7 @@ import { useWallet } from "@/components/wallet/WalletProvider";
 
 /** One dashboard, two audiences: a registered creator sees the creator view, a brand its own; a wallet that is both can switch. */
 export default function Dashboard() {
-  const { wallet, devWallets } = useWallet();
+  const { wallet } = useWallet();
   const [creator, setCreator] = useState<CreatorJson | null | undefined>(undefined);
   const [as, setAs] = useState<"creator" | "brand">("creator");
 
@@ -31,7 +31,6 @@ export default function Dashboard() {
           <Link href="/onboard" className={pillClass("ink")}>
             Sign in
           </Link>
-          {devWallets.length > 0 && <p className="m-0 text-[14px] text-grey">Or pick a DEV test wallet in the header.</p>}
         </div>
       </AppPage>
     );

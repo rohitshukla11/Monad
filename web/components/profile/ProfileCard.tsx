@@ -12,7 +12,7 @@ import { api, reason } from "@/lib/client/tx";
 import { AGE_RANGES, SAMPLE_SCENES, SAMPLES_PER_DAY, SETTINGS, TONES, type PublicProfile, type StyleTags } from "@/lib/creator-profile";
 import { b64u } from "@/lib/crypto/encoding";
 import { releaseForSamples, sampleContext } from "@/lib/crypto/release";
-import { CreatorFace, pillClass, StatusPill } from "@/components/ds";
+import { AiTag, CreatorFace, pillClass, StatusPill } from "@/components/ds";
 import { Note } from "@/components/ui";
 import type { ActiveWallet } from "@/components/wallet/WalletProvider";
 import { PublicPhotoPicker } from "./PublicPhotoPicker";
@@ -64,7 +64,10 @@ export function ProfileCard({ wallet, referenceSetHash }: { wallet: ActiveWallet
       </div>
 
       <div className="flex flex-wrap items-center gap-5">
-        <CreatorFace seed={me} photo={profile?.photo} size={96} label={profile?.photo ? "Your public photo" : undefined} />
+        <div className="flex flex-col items-center gap-2">
+          <CreatorFace seed={me} photo={profile?.photo} size={96} label={profile?.photo ? (profile.photoAi ? "Your AI-generated public image" : "Your public photo") : undefined} />
+          {profile?.photo && profile.photoAi && <AiTag />}
+        </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           {!profile?.photo && (
             <p className="m-0 text-[15px] text-wait">Add a public photo to be listed. Until then brands see a silhouette and you are not in the marketplace.</p>

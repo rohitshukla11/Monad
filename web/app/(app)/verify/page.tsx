@@ -33,7 +33,7 @@ type V = {
   licence: { id: string; status: string; use: string; regions: string; start: number; end: number; renders: string; price: string; creator: string; licensee: string } | null;
   creator: { address: string; trust: Trust; verifiedAt: number; upgradedAt?: number } | null;
   revoked: { at: number; tx: string; how: string } | null;
-  preview?: { kind: "profile-photo" | "sample-render"; status: "pending" | "live" | "removed"; publishedAt: number; removedAt?: number } | null;
+  preview?: { kind: "profile-photo" | "sample-render"; status: "pending" | "live" | "removed"; publishedAt: number; removedAt?: number; aiGenerated?: boolean } | null;
   notes: string[];
 };
 
@@ -346,7 +346,7 @@ function subline(v: V): string {
     case "Expired":
       return "Licensed when it was made. The licence period has ended.";
     case "ProfilePhoto":
-      return `Profile photo of a Likeness creator: a preview, not a licensed asset.${v.preview?.status === "removed" ? " The creator has since taken it down." : ""}`;
+      return `${v.preview?.aiGenerated ? "AI-generated profile image" : "Profile photo"} of a Likeness creator: a preview, not a licensed asset.${v.preview?.status === "removed" ? " The creator has since taken it down." : ""}`;
     case "Sample":
       return `Sample render: not a licence to use this face.${v.preview?.status === "removed" ? " The creator has since taken it down." : ""}`;
     default:

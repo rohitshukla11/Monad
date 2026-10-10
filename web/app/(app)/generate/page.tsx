@@ -161,7 +161,6 @@ function Generate() {
           </Link>
         }
       >
-        Sign in, or pick a DEV wallet in the header, to generate under your licences.
       </NoticePage>
     );
 

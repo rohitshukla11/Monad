@@ -29,6 +29,7 @@ export default async function MarketPage() {
         autoApprove: c.terms.autoApprove,
         registeredAt: c.registeredAt ?? 0,
         photo: profiles[c.address.toLowerCase()]?.photo ?? null,
+        photoAi: !!profiles[c.address.toLowerCase()]?.photoAi,
         tags: [...(profiles[c.address.toLowerCase()]?.tags.tone ?? []), ...(profiles[c.address.toLowerCase()]?.tags.setting ?? [])],
       }));
   } catch (e) {

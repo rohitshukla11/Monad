@@ -4,7 +4,7 @@ import { isAddress, type Address } from "viem";
 import { RequestLicence } from "@/components/market/RequestLicence";
 import { SamplesGallery } from "@/components/profile/SamplesGallery";
 import { BrandGate } from "@/components/brand/BrandGate";
-import { CreatorFace, EmptyState, LimeCard, NoticePage, PageHero, Panel, StatCard, TagChip, Tile, pillClass } from "@/components/ds";
+import { AiTag, CreatorFace, EmptyState, LimeCard, NoticePage, PageHero, Panel, StatCard, TagChip, Tile, pillClass } from "@/components/ds";
 import { IconArrowLeft, VerifiedMark } from "@/components/ds/icons";
 import { Addr, Note, Tx, TrustBadge, fmtDay, shortAddr } from "@/components/ui";
 import { categoryLabels, regionLabels } from "@/lib/categories";
@@ -39,12 +39,13 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
             <IconArrowLeft size={18} /> All creators
           </Link>
           <div className="flex flex-wrap items-center gap-5">
-            <CreatorFace seed={c.address} photo={profile.photo} size={profile.photo ? 120 : 68} ring="#121316" label={profile.photo ? `Public photo of creator ${shortAddr(c.address)}` : undefined} />
+            <CreatorFace seed={c.address} photo={profile.photo} size={profile.photo ? 120 : 68} ring="#121316" label={profile.photo ? `${profile.photoAi ? "AI-generated public image" : "Public photo"} of creator ${shortAddr(c.address)}` : undefined} />
             <h1 className="m-0 flex min-w-0 flex-wrap items-center gap-3 font-mono text-[clamp(24px,3.2vw,36px)] font-bold tracking-[-0.03em]">
               <span className="sr-only">Creator </span>
               {shortAddr(c.address)}
               {verified && <VerifiedMark size={26} />}
             </h1>
+            {profile.photo && profile.photoAi && <AiTag />}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <TrustBadge trust={c.trust} />

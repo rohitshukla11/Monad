@@ -369,13 +369,6 @@ function Creators() {
             </Link>
           );
         })}
-        <p className="m-0 text-[13px] text-[#3E4148] sm:col-span-3">
-          Example images, not registered creators.{" "}
-          <Link href="/market" className="font-semibold text-ink underline">
-            See the real creators in the marketplace
-          </Link>
-          .
-        </p>
       </div>
     </section>
   );

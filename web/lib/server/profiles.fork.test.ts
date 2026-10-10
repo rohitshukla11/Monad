@@ -224,6 +224,41 @@ describe.skipIf(!run)("public profiles, samples and brands", () => {
     expect(v.headline).toMatch(/not a licence/);
   });
 
+  // ---------------------------------------------------------------- an approved sample as the public photo
+
+  it("refuses a sample that is not one of the creator's approved samples", async () => {
+    const { setPublicPhotoFromSample } = await import("./profiles");
+    const auth = await sign(creatorKey, "set public photo from sample", { sample: "not-a-sample" });
+    await expect(setPublicPhotoFromSample({ address: creator, auth, sampleId: "not-a-sample", set, reference: photos[0].slice() })).rejects.toThrow(/approved samples/);
+  });
+
+  it.skipIf(!facesAvailable)("uses an approved sample as the public photo, labelled AI-generated everywhere", async () => {
+    const { setPublicPhotoFromSample, publicProfile } = await import("./profiles");
+    const { mySamples } = await import("./samples");
+    const { mediaBytes } = await import("./media");
+    const { verifyFile } = await import("./verify");
+    const s = (await mySamples(creator, await sign(creatorKey, "list my samples", {}))).find((x) => x.sha256 === published[1])!;
+    // A signature for another sample does not carry over.
+    const wrong = await sign(creatorKey, "set public photo from sample", { sample: "other" });
+    await expect(setPublicPhotoFromSample({ address: creator, auth: wrong, sampleId: s.id, set, reference: photos[0].slice() })).rejects.toThrow(/another sample/);
+
+    const auth = await sign(creatorKey, "set public photo from sample", { sample: s.id });
+    const r = await setPublicPhotoFromSample({ address: creator, auth, sampleId: s.id, set, reference: photos[0].slice() });
+    expect(r.ai).toBe(true);
+    const p = await publicProfile(creator);
+    expect(p.photo).toBe(r.photo);
+    expect(p.photoAi).toBe(true);
+    const m = (await mediaBytes(r.sha256))!;
+    const meta = await sharp(m.bytes).metadata();
+    expect(Math.max(meta.width!, meta.height!)).toBeLessThanOrEqual(512);
+    expect(meta.exif).toBeUndefined();
+    const v = await verifyFile(new Uint8Array(m.bytes), "image/jpeg");
+    expect(v.verdict).toBe("ProfilePhoto");
+    expect(v.headline).toMatch(/^AI-generated profile image/);
+    expect(v.preview?.aiGenerated).toBe(true);
+    expect(v.manifest?.present && v.manifest.preview?.aiGenerated).toBe(true);
+  }, 120_000);
+
   // ---------------------------------------------------------------- takedowns
 
   it("removing a sample takes it down everywhere", async () => {

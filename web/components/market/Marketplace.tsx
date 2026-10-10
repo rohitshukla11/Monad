@@ -3,7 +3,7 @@
 /** Marketplace (Marketplace.dc.html): real, Didit-verified creators, with search, use and level filters and a price sort. */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AvatarStack, CardRings, HeroHeadline, HeroLine, InlinePill, Panel, pillClass, Silhouette, silhouetteFor, TagChip } from "@/components/ds";
+import { AiTag, AvatarStack, CardRings, HeroHeadline, HeroLine, InlinePill, Panel, pillClass, Silhouette, silhouetteFor, TagChip } from "@/components/ds";
 import { IconArrowUpRight, IconBookmark, IconCamera, IconSearch, VerifiedMark } from "@/components/ds/icons";
 import { CATEGORIES } from "@/lib/categories";
 import { useBrandReady } from "@/components/brand/useBrandReady";
@@ -19,6 +19,8 @@ export type MarketCreator = {
   registeredAt: number;
   /** Public photo (512 px, watermarked). Only creators with one are listed. */
   photo: string | null;
+  /** The public photo is an AI-generated Likeness sample, not a photo. */
+  photoAi: boolean;
   tags: string[];
 };
 
@@ -192,10 +194,11 @@ function CreatorCard({ c, saved, onSave, requestHref }: { c: MarketCreator; save
       <div className="relative flex aspect-square items-end justify-center overflow-hidden rounded-[18px]" style={{ background: s.tint }}>
         {c.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.photo} alt={`Public photo of creator ${name}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+          <img src={c.photo} alt={`${c.photoAi ? "AI-generated public image" : "Public photo"} of creator ${name}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
         ) : (
           <Silhouette fill={s.sil} />
         )}
+        {c.photo && c.photoAi && <AiTag className="absolute left-3 top-3" />}
       </div>
       <div className="flex justify-between gap-2.5">
         <div className="flex min-w-0 flex-col gap-0.5">

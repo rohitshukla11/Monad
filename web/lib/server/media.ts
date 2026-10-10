@@ -13,7 +13,7 @@ import { requireAddress } from "@/lib/deployment";
 import { embedPreviewManifest } from "./c2pa";
 import { dbGet, dbPut } from "./db";
 import { fileDelete, fileGet, filePut, localDir } from "./files";
-import { WATERMARK_PROFILE, WATERMARK_SAMPLE } from "./watermarks";
+import { WATERMARK_PROFILE, WATERMARK_PROFILE_AI, WATERMARK_SAMPLE } from "./watermarks";
 
 export type MediaKind = "profile-photo" | "sample-render" | "brand-logo";
 
@@ -31,6 +31,8 @@ export type MediaRecord = {
   removedAt?: number;
   /** For samples: the sample id. */
   ref?: string;
+  /** A profile image made from an approved sample (AI-generated), not a photo. */
+  ai?: boolean;
 };
 
 const mediaDir = () => localDir("MEDIA_DIR", "media");
@@ -38,11 +40,17 @@ const paths = (file: string) => [`media/${file}`, path.join(/*turbopackIgnore: t
 export const sha256 = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
 
 /** Resize to fit `edge`, drop metadata, add the visible watermark bottom-right; JPEG out. */
-export async function watermarked(bytes: Uint8Array, edge: number, kind: "profile-photo" | "sample-render"): Promise<Buffer> {
-  const base = sharp(bytes, { failOn: "error" }).rotate().resize({ width: edge, height: edge, fit: "inside", withoutEnlargement: true });
+export async function watermarked(bytes: Uint8Array, edge: number, kind: "profile-photo" | "sample-render", opts: { ai?: boolean; cropBottom?: number } = {}): Promise<Buffer> {
+  let src = sharp(bytes, { failOn: "error" }).rotate();
+  if (opts.cropBottom) {
+    // Drop a band at the bottom (a sample's own watermark) before re-marking the image.
+    const m = await sharp(bytes).metadata();
+    src = sharp(await src.extract({ left: 0, top: 0, width: m.width!, height: Math.round(m.height! * (1 - opts.cropBottom)) }).toBuffer());
+  }
+  const base = src.resize({ width: edge, height: edge, fit: "inside", withoutEnlargement: true });
   const { data, info } = await base.jpeg({ quality: 88 }).toBuffer({ resolveWithObject: true });
   const markWidth = Math.max(160, Math.round(info.width * 0.62));
-  const mark = await sharp(kind === "profile-photo" ? WATERMARK_PROFILE : WATERMARK_SAMPLE).resize({ width: Math.min(markWidth, info.width - 16) }).png().toBuffer();
+  const mark = await sharp(kind === "sample-render" ? WATERMARK_SAMPLE : opts.ai ? WATERMARK_PROFILE_AI : WATERMARK_PROFILE).resize({ width: Math.min(markWidth, info.width - 16) }).png().toBuffer();
   const meta = await sharp(mark).metadata();
   const margin = Math.max(8, Math.round(info.width * 0.025));
   return sharp(data)
@@ -60,18 +68,27 @@ export async function publishPreview(input: {
   status: "pending" | "live";
   ref?: string;
   model?: string;
+  /** A profile image made from an approved sample: watermarked and labelled AI-generated. */
+  ai?: boolean;
+  cropBottom?: number;
 }): Promise<MediaRecord> {
-  const marked = await watermarked(input.bytes, input.edge, input.kind);
+  const marked = await watermarked(input.bytes, input.edge, input.kind, { ai: input.ai, cropBottom: input.cropBottom });
   const signed = embedPreviewManifest(
     marked,
     "image/jpeg",
-    { kind: input.kind, creator: input.owner.toLowerCase(), creatorRegistry: requireAddress("CreatorRegistry"), createdAt: new Date().toISOString() },
+    {
+      kind: input.kind,
+      creator: input.owner.toLowerCase(),
+      creatorRegistry: requireAddress("CreatorRegistry"),
+      createdAt: new Date().toISOString(),
+      ...(input.ai ? { aiGenerated: true } : {}),
+    },
     input.model,
   );
   const hash = sha256(signed);
   const file = `${input.kind}/${hash}.jpg`;
   await filePut(...paths(file), signed, { contentType: "image/jpeg", overwrite: true });
-  const rec: MediaRecord = { sha256: hash, kind: input.kind, owner: input.owner.toLowerCase(), file, mime: "image/jpeg", status: input.status, createdAt: Date.now(), ref: input.ref };
+  const rec: MediaRecord = { sha256: hash, kind: input.kind, owner: input.owner.toLowerCase(), file, mime: "image/jpeg", status: input.status, createdAt: Date.now(), ref: input.ref, ...(input.ai ? { ai: true } : {}) };
   await dbPut("media", hash, rec);
   return rec;
 }

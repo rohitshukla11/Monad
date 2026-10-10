@@ -61,6 +61,11 @@ function sampleSecret(): Uint8Array {
 }
 export const samplePublicKey = () => b64u.encode(x25519.getPublicKey(sampleSecret()));
 
+/** One of the creator's published samples, by id. */
+export async function publishedSample(creator: string, id: string): Promise<Sample | null> {
+  return (await doc(creator)).items.find((s) => s.id === id && s.status === "published") ?? null;
+}
+
 export async function countPublished(creator: string): Promise<number> {
   return (await doc(creator)).items.filter((s) => s.status === "published").length;
 }
