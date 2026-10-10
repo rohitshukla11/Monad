@@ -7,7 +7,9 @@ import "server-only";
  *   112×112 ArcFace template (as OpenCV FaceRecognizerSF::alignCrop) → embed (AuraFace v1
  *   glintr100, fal, Apache-2.0 weights) → cosine similarity of L2-normalised 512-d embeddings.
  *
- * Runtime: onnxruntime-node (MIT), CPU. Models: `pnpm face:models` (sha256-pinned, in .models/).
+ * Runtime: onnxruntime-node (MIT), CPU. Models: `pnpm face:models` (sha256-pinned, in .models/). On a
+ * host that can't ship 260 MB of weights with the code (Vercel), they are fetched from the same pinned
+ * URLs into /tmp on first use and checked against the same sha256 before loading.
  * Licence caveats, stated plainly: YuNet's weights are MIT but it was trained on WIDER FACE
  * (CC BY-NC-ND images); AuraFace's training set is described by fal as commercially usable but not
  * named. See README, "Threat model and honest limits".
@@ -15,6 +17,7 @@ import "server-only";
 import path from "node:path";
 import sharp from "sharp";
 import { singleton } from "./chain";
+import { ensureModels } from "./facemodels";
 
 type Ort = typeof import("onnxruntime-node");
 type Session = import("onnxruntime-node").InferenceSession;
@@ -44,7 +47,12 @@ const models = singleton("facematch-models", () => ({ ort: null as Ort | null, d
 
 async function load() {
   if (models.det && models.rec && models.ort) return models as { ort: Ort; det: Session; rec: Session };
-  const dir = path.resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.FACE_MODELS_DIR ?? ".models");
+  let dir: string;
+  try {
+    dir = await ensureModels();
+  } catch (e) {
+    throw new FaceMatchError(503, `local face matcher models missing: ${(e as Error).message}`);
+  }
   const ort = await import("onnxruntime-node");
   try {
     models.det = await ort.InferenceSession.create(path.join(/*turbopackIgnore: true*/ dir, "face_detection_yunet_2023mar.onnx"), { logSeverityLevel: 3 });

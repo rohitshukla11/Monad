@@ -13,8 +13,8 @@ const MAX_CAPTURE = 1_500_000;
  * photos" over the photos' sha256), since each match is a paid Didit call.
  */
 
-// Chain, Didit, C2PA or model calls can outlast the default function timeout on a host like Vercel.
-export const maxDuration = 60;
+// On a cold start the free-level matcher may first fetch its weights (about 260 MB) before matching.
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   let bytes: Uint8Array[] = [];

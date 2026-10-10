@@ -3,8 +3,8 @@ import "server-only";
  * Every external integration, whether it is configured, and what it turns on. Pages and /api/status
  * read this, so a missing credential shows up as "not configured", never as a pass.
  */
-import { existsSync } from "node:fs";
 import { historySource } from "./index";
+import { modelsFetchable, modelsPresent } from "./facemodels";
 import { loadKey } from "./keys";
 import { secretText } from "./secret";
 
@@ -57,9 +57,10 @@ export function integrations(): Integration[] {
     {
       key: "face-models",
       name: "Local face matcher (free level)",
-      configured: ["auraface_glintr100.onnx", "face_detection_yunet_2023mar.onnx"].every((m) => existsSync(`${process.env.FACE_MODELS_DIR ?? ".models"}/${m}`)),
+      // Present on disk, or fetched (sha256-pinned) on first use where the host can't ship them (Vercel).
+      configured: modelsPresent() || modelsFetchable(),
       turnsOn: "At VERIFICATION_LEVEL=free, matching the three reference photos to the Didit liveness selfie on this server (YuNet + AuraFace, in memory)",
-      env: ["pnpm face:models", "FACE_MODELS_DIR", "LOCAL_FACE_MATCH_THRESHOLD"],
+      env: ["pnpm face:models", "FACE_MODELS_DIR", "FACE_MODELS_FETCH (on by default on Vercel)", "LOCAL_FACE_MATCH_THRESHOLD"],
       whenMissing: "Free-level creators cannot get their reference photos matched, so they cannot register",
     },
     {
