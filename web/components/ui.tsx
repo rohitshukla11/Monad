@@ -1,59 +1,63 @@
-/** Small shared pieces, in the Whistle tokens (globals.css). */
+/**
+ * Small app primitives, in the Likeness design system (app/globals.css, components/ds). Older pages
+ * and panels use these; they render as white cards and pills on the off-white panel.
+ */
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { explorer } from "@/lib/chain";
 import type { LicenceStatus, Trust } from "@/lib/licensing";
 import { LIVENESS_NOTE } from "@/lib/verification";
+import { pillClass, StatusPill, type PillKind } from "./ds";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-card border border-line bg-panel p-8 text-sm ${className}`}>{children}</section>;
+  return <section className={`rounded-[26px] bg-white p-6 text-[15px] text-ink sm:p-7 ${className}`}>{children}</section>;
 }
 
 export function H2({ children }: { children: ReactNode }) {
-  return <h2 className="font-display text-xl font-semibold">{children}</h2>;
+  return <h2 className="m-0 text-[22px] font-semibold tracking-[-0.01em]">{children}</h2>;
 }
 
 type Tone = "up" | "down" | "warn" | "blue" | "dim";
-const tones: Record<Tone, string> = {
-  up: "border-up/40 text-up",
-  down: "border-down/40 text-down",
-  warn: "border-warn/40 text-warn",
-  blue: "border-blue/40 text-blue",
-  dim: "border-line text-dim",
-};
+const pillOf: Record<Tone, PillKind> = { up: "licensed", down: "revoked", warn: "waiting", blue: "waiting", dim: "neutral" };
 
 export function Badge({ tone, children, title }: { tone: Tone; children: ReactNode; title?: string }) {
   return (
-    <span title={title} className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${tones[tone]}`}>
+    <StatusPill kind={pillOf[tone]} title={title}>
       {children}
-    </span>
+    </StatusPill>
   );
 }
 
 export function TrustBadge({ trust }: { trust: Trust }) {
   if (trust.level === "verified")
     return (
-      <span className="inline-flex gap-1.5">
-        <Badge tone="up" title={`Didit: ID 18+, liveness, selfie-to-ID face match. Providers: ${trust.liveness}, ${trust.age}.`}>
-          Verified{trust.sandbox ? " · Didit sandbox" : ""}
-        </Badge>
-        <Badge tone={trust.livenessMethod === "passive" || trust.livenessMethod === "unknown" ? "warn" : "up"} title={LIVENESS_NOTE[trust.livenessMethod]}>
+      <span className="inline-flex flex-wrap gap-1.5">
+        <StatusPill kind="licensed" title={`Didit: ID 18+, liveness, selfie-to-ID face match. Providers: ${trust.liveness}, ${trust.age}.`}>
+          Verified human{trust.sandbox ? " · Didit sandbox" : ""}
+        </StatusPill>
+        <StatusPill kind={trust.livenessMethod === "passive" || trust.livenessMethod === "unknown" ? "waiting" : "licensed"} title={LIVENESS_NOTE[trust.livenessMethod]}>
           {trust.livenessMethod === "flash" ? "active" : trust.livenessMethod} liveness
-        </Badge>
+        </StatusPill>
       </span>
     );
   if (trust.level === "unverified-test")
     return (
-      <Badge tone="warn" title="Seeded for local testing. No liveness or ID check was run.">
+      <StatusPill kind="waiting" title="A throwaway test creator. No liveness or ID check was run.">
         Unverified test creator
-      </Badge>
+      </StatusPill>
     );
-  return <Badge tone="down" title={`Liveness: ${trust.liveness || "none"}. Age: ${trust.age || "none"}.`}>Unknown attestation</Badge>;
+  return (
+    <StatusPill kind="revoked" title={`Liveness: ${trust.liveness || "none"}. Age: ${trust.age || "none"}.`}>
+      Unknown attestation
+    </StatusPill>
+  );
 }
 
+export const STATUS_LABEL: Record<LicenceStatus, string> = { Active: "Licensed", Revoked: "Revoked", Expired: "Expired", Exhausted: "Used up", Unknown: "Unknown" };
+
 export function StatusBadge({ status }: { status: LicenceStatus }) {
-  const tone: Tone = status === "Active" ? "up" : status === "Revoked" ? "down" : status === "Unknown" ? "dim" : "warn";
-  return <Badge tone={tone}>{status}</Badge>;
+  const kind: PillKind = status === "Active" ? "licensed" : status === "Revoked" ? "revoked" : "neutral";
+  return <StatusPill kind={kind}>{STATUS_LABEL[status]}</StatusPill>;
 }
 
 export function Button({
@@ -62,21 +66,18 @@ export function Button({
   disabled,
   kind = "primary",
   type = "button",
+  label,
 }: {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  kind?: "primary" | "secondary" | "danger" | "ghost";
+  kind?: "primary" | "secondary" | "danger" | "ghost" | "ink";
   type?: "button" | "submit";
+  label?: string;
 }) {
-  const k = {
-    primary: "bg-text text-ground",
-    secondary: "border border-line",
-    danger: "border border-down/60 text-down hover:bg-down/10",
-    ghost: "text-dim hover:text-text",
-  }[kind];
+  const k = ({ primary: "lime", secondary: "outline", danger: "danger", ghost: "ghost", ink: "ink" } as const)[kind];
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={`whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-50 ${k}`}>
+    <button type={type} onClick={onClick} disabled={disabled} aria-label={label} className={pillClass(k)}>
       {children}
     </button>
   );
@@ -84,9 +85,10 @@ export function Button({
 
 export function Tx({ hash, ms }: { hash: string; ms?: number }) {
   return (
-    <a className="font-mono text-xs text-blue hover:underline" href={explorer.tx(hash)} target="_blank" rel="noreferrer">
+    <a className="font-mono text-[13px] text-wait underline-offset-2 hover:underline" href={explorer.tx(hash)} target="_blank" rel="noreferrer">
       {hash.slice(0, 10)}…{hash.slice(-6)}
-      {ms !== undefined && <span className="text-dim"> · confirmed in {ms} ms</span>}
+      <span className="sr-only"> (opens MonadVision)</span>
+      {ms !== undefined && <span className="text-grey"> · confirmed in {ms} ms</span>}
     </a>
   );
 }
@@ -94,30 +96,46 @@ export function Tx({ hash, ms }: { hash: string; ms?: number }) {
 export function Addr({ a, href }: { a: string; href?: string }) {
   const short = `${a.slice(0, 6)}…${a.slice(-4)}`;
   return href ? (
-    <Link href={href} className="tnum font-mono hover:text-blue">
+    <Link href={href} className="tnum font-mono underline-offset-2 hover:underline">
       {short}
     </Link>
   ) : (
-    <a href={explorer.address(a)} target="_blank" rel="noreferrer" className="tnum font-mono hover:text-blue">
+    <a href={explorer.address(a)} target="_blank" rel="noreferrer" className="tnum font-mono underline-offset-2 hover:underline">
       {short}
+      <span className="sr-only"> (opens MonadVision)</span>
     </a>
   );
 }
 
 export function Note({ tone = "warn", children }: { tone?: Tone; children: ReactNode }) {
-  return <p className={`text-sm ${tone === "warn" ? "text-warn" : tone === "down" ? "text-down" : tone === "up" ? "text-up" : "text-dim"}`}>{children}</p>;
+  const c = tone === "warn" || tone === "blue" ? "text-wait" : tone === "down" ? "text-bad" : tone === "up" ? "text-ok" : "text-grey";
+  return <p className={`m-0 text-[15px] ${c}`}>{children}</p>;
 }
 
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+/** A labelled control. `group` is for a set of buttons (chips): a fieldset, so the label never clicks the first one. */
+export function Field({ label, children, hint, group }: { label: string; children: ReactNode; hint?: string; group?: boolean }) {
+  if (group)
+    return (
+      <fieldset className="m-0 min-w-0 space-y-1.5 border-0 p-0">
+        <legend className="mb-1.5 p-0 text-[14px] font-medium text-grey">{label}</legend>
+        {children}
+        {hint && <span className="block text-[13px] text-grey">{hint}</span>}
+      </fieldset>
+    );
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs uppercase tracking-wider text-dim">{label}</span>
+      <span className="text-[14px] font-medium text-grey">{label}</span>
       {children}
-      {hint && <span className="block text-xs text-dim">{hint}</span>}
+      {hint && <span className="block text-[13px] text-grey">{hint}</span>}
     </label>
   );
 }
 
-export const inputClass = "w-full rounded-full border border-line bg-surface px-4 py-2 text-sm";
+export const inputClass = "w-full min-h-11 rounded-[14px] border border-field bg-white px-4 py-2 text-[15px] text-ink placeholder:text-grey";
 
 export const fmtDate = (unix: number | bigint) => new Date(Number(unix) * 1000).toISOString().replace("T", " ").slice(0, 16) + " UTC";
+
+export const fmtDay = (unix: number | bigint) =>
+  new Date(Number(unix) * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+export const shortAddr = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
