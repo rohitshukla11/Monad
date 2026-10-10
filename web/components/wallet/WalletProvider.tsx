@@ -98,6 +98,10 @@ function DynamicBridge({ onWallet }: { onWallet: (w: ActiveWallet | null) => voi
         label: "Dynamic embedded wallet",
         client: client as unknown as WalletClient<Transport, Chain, Account>,
       });
+    }).catch((e: unknown) => {
+      // Dynamic could not hand over a signer for this account: act as signed out, and say why in the console.
+      console.warn("Dynamic wallet client unavailable:", e instanceof Error ? e.message : e);
+      if (!cancelled) onWallet(null);
     });
     return () => {
       cancelled = true;

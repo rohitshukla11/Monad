@@ -80,13 +80,19 @@ function Generate() {
   const [error, setError] = useState<React.ReactNode>(null);
   const [result, setResult] = useState<Result | null>(null);
 
+  // A failed load is shown as such (with Retry), never as "no licence".
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   useEffect(() => {
     if (!wallet) return;
-    api<{ licences: Row[] }>(`/api/licences?licensee=${wallet.address}`).then((j) => {
-      setLicences(j.licences);
-      if (!id && j.licences.find((l) => l.status === "Active")) setId(j.licences.find((l) => l.status === "Active")!.id);
-    });
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+    setLoadError(null);
+    api<{ licences: Row[] }>(`/api/licences?licensee=${wallet.address}`)
+      .then((j) => {
+        setLicences(j.licences);
+        if (!id && j.licences.find((l) => l.status === "Active")) setId(j.licences.find((l) => l.status === "Active")!.id);
+      })
+      .catch((e) => setLoadError(reason(e)));
+  }, [wallet, reload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const check = useCallback(
     async (withPrompt: boolean) => {
@@ -191,7 +197,15 @@ function Generate() {
         )}
       </PageHero>
       <Panel>
-        {active.length === 0 && (
+        {loadError && (
+          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-[22px] bg-white p-5 text-[15px] text-bad">
+            Couldn&apos;t load your licences: {loadError}
+            <button type="button" onClick={() => setReload((n) => n + 1)} className={pillClass("outline", "min-h-11 px-4 text-[14px]")}>
+              Retry
+            </button>
+          </div>
+        )}
+        {!loadError && active.length === 0 && (
           <EmptyState
             title="No active licence for this wallet"
             action={
