@@ -41,7 +41,7 @@ export function Renders() {
 
   return (
     <Card className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <H2>Your renders</H2>
         <Button kind="secondary" onClick={load}>
           {rows ? "Refresh" : "Show my renders"}
@@ -49,24 +49,24 @@ export function Renders() {
       </div>
       {msg && <Note tone="down">{msg}</Note>}
       {rows?.length === 0 && <Note tone="dim">No renders yet.</Note>}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rows?.map((r) => (
-          <div key={r.assetHash} className="space-y-2 rounded-card border border-line-soft p-3">
+          <div key={r.assetHash} className="flex flex-col gap-2 rounded-[22px] border border-divider p-3">
             {r.download ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.download} alt={`Licence ${r.licenceId} render ${r.renderIndex}`} className="aspect-square w-full rounded-card object-cover" />
+              <img src={r.download} alt={`Licence ${r.licenceId} render ${r.renderIndex}`} className="aspect-square w-full rounded-[18px] object-cover" />
             ) : (
-              <div className="flex aspect-square items-center justify-center rounded-card bg-surface text-xs text-dim">awaiting payment</div>
+              <div className="flex aspect-square items-center justify-center rounded-[18px] bg-paper text-[13px] text-grey">awaiting payment</div>
             )}
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex flex-wrap items-center gap-2 text-[14px]">
               <span>
                 #{r.licenceId} · render {r.renderIndex}
               </span>
               {r.test && <Badge tone="warn">TEST RENDER</Badge>}
             </div>
             {r.tx && <Tx hash={r.tx} ms={r.confirmMs} />}
-            <Link className="block text-xs text-blue" href={`/verify?hash=${r.assetHash}`}>
-              Verify →
+            <Link className="inline-flex min-h-11 items-center text-[14px] font-semibold text-wait underline" href={`/verify?hash=${r.assetHash}`}>
+              Verify this render
             </Link>
           </div>
         ))}

@@ -26,6 +26,18 @@ import { useWallet } from "@/components/wallet/WalletProvider";
 
 const RANK_OF_LEVEL: Record<VerificationLevel, number> = { free: LIVENESS_RANK.passive, full: LIVENESS_RANK.active };
 
+/** The level this server verifies new creators at, and whether a creator at `current` could upgrade to it. */
+export function useServerLevel(current: Trust) {
+  const [level, setLevel] = useState<VerificationLevel | null>(null);
+  useEffect(() => {
+    api<{ verificationLevel: VerificationLevel }>("/api/status")
+      .then((s) => setLevel(s.verificationLevel))
+      .catch(() => {});
+  }, []);
+  const method = current.level === "verified" ? current.livenessMethod : "unknown";
+  return { level, canUpgrade: level !== null && RANK_OF_LEVEL[level] > LIVENESS_RANK[method] };
+}
+
 export function Verification({
   trust,
   verifiedAt,
@@ -75,7 +87,7 @@ export function Verification({
 
 type Step = "consent" | "didit" | "recheck" | "done";
 
-function ReverifyFlow({ referenceSetHash, onDone }: { referenceSetHash: Hex; onDone: () => void }) {
+export function ReverifyFlow({ referenceSetHash, onDone }: { referenceSetHash: Hex; onDone: () => void }) {
   const { wallet } = useWallet();
   const [step, setStep] = useState<Step>("consent");
   const [log, setLog] = useState<React.ReactNode[]>([]);
@@ -132,7 +144,7 @@ function ReverifyFlow({ referenceSetHash, onDone }: { referenceSetHash: Hex; onD
   }
 
   return (
-    <div className="space-y-4 rounded-card border border-line-soft p-6">
+    <div className="flex flex-col gap-4 rounded-[26px] bg-white p-6 text-ink">
       {step === "consent" && <ConsentStep wallet={wallet} onDone={toDidit} always />}
       {step === "didit" && <DiditStep address={wallet.address} onDone={toRecheck} />}
       {step === "recheck" && (
