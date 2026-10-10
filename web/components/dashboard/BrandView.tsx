@@ -86,7 +86,7 @@ export function BrandView({ wallet }: { wallet: ActiveWallet }) {
 
   return (
     <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[110px] pt-8 text-white sm:px-8 sm:pt-11">
+      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
         <HeroHeadline label={`Your licences: ${active.length} active, ${money(spent)} spent on ${renders} renders`}>
           <HeroLine>
             Your licences
@@ -100,18 +100,18 @@ export function BrandView({ wallet }: { wallet: ActiveWallet }) {
         {active.length > 0 ? (
           <LimeCard label="Generate">
             <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">{money(inEscrow)} in escrow</span>
-            <h2 className="m-0 text-[clamp(26px,3vw,34px)] font-bold leading-[1.1] tracking-[-0.02em]">Make your next render</h2>
+            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">Make your next render</h2>
             <p className="m-0 text-[15px] leading-relaxed">Each render pays the creator and anchors a receipt in one Monad transaction.</p>
-            <Link href="/generate" className="mt-auto flex min-h-[54px] items-center justify-center gap-2 rounded-[18px] bg-ink px-5 text-[16px] font-semibold text-white no-underline">
+            <Link href="/generate" className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[18px] bg-ink px-5 text-[15px] font-semibold text-white no-underline">
               Generate <IconArrowRight size={18} stroke="#FFFFFF" />
             </Link>
           </LimeCard>
         ) : (
           <LimeCard label="Find a face">
             <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">No active licence</span>
-            <h2 className="m-0 text-[clamp(26px,3vw,34px)] font-bold leading-[1.1] tracking-[-0.02em]">Find a face to license</h2>
+            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">Find a face to license</h2>
             <p className="m-0 text-[15px] leading-relaxed">Every creator in the marketplace is a verified human who set their own terms.</p>
-            <Link href="/market" className="mt-auto flex min-h-[54px] items-center justify-center gap-2 rounded-[18px] bg-ink px-5 text-[16px] font-semibold text-white no-underline">
+            <Link href="/market" className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[18px] bg-ink px-5 text-[15px] font-semibold text-white no-underline">
               <IconSearch size={18} stroke="#FFFFFF" /> Marketplace
             </Link>
           </LimeCard>
@@ -153,7 +153,7 @@ export function BrandView({ wallet }: { wallet: ActiveWallet }) {
                   <Link href={`/market/${l.creator}`} className="flex min-w-0 items-center gap-3 text-ink no-underline">
                     <Avatar seed={l.creator} />
                     <span className="flex min-w-0 flex-col">
-                      <span className="tnum truncate text-[20px] font-semibold">
+                      <span className="tnum truncate text-[17px] font-semibold">
                         {l.creator.slice(0, 6)}…{l.creator.slice(-4)}
                       </span>
                       <span className="text-[14px] text-grey">Licence {pad(l.id)}</span>
@@ -170,7 +170,7 @@ export function BrandView({ wallet }: { wallet: ActiveWallet }) {
                   <span className="text-[15px] text-grey">
                     {l.renderCount} of {l.renderCap} renders · {money(BigInt(l.pricePerRender))} each
                   </span>
-                  <span className="tnum text-[24px] font-bold" title="Escrow balance">
+                  <span className="tnum text-[17px] font-bold" title="Escrow balance">
                     {money(bal)}
                   </span>
                 </div>

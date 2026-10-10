@@ -14,7 +14,7 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 }
 
 export function H2({ children }: { children: ReactNode }) {
-  return <h2 className="m-0 text-[22px] font-semibold tracking-[-0.01em]">{children}</h2>;
+  return <h2 className="m-0 text-[19px] font-semibold tracking-[-0.01em]">{children}</h2>;
 }
 
 type Tone = "up" | "down" | "warn" | "blue" | "dim";

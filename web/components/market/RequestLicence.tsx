@@ -115,7 +115,7 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
 
   return (
     <section id="request" aria-labelledby="request-title" className="flex scroll-mt-6 flex-col gap-6 rounded-[26px] bg-white p-6 sm:p-8">
-      <h2 id="request-title" className="m-0 text-[clamp(24px,3vw,30px)] font-bold tracking-[-0.02em]">Request a licence</h2>
+      <h2 id="request-title" className="m-0 text-[clamp(20px,2vw,24px)] font-bold tracking-[-0.02em]">Request a licence</h2>
       {!wallet && <Note>Sign in (or pick a DEV wallet in the header) to request a licence.</Note>}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Use">

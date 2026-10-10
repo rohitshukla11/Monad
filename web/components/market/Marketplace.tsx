@@ -52,22 +52,22 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
 
   return (
     <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[110px] pt-8 text-white sm:px-8 sm:pt-11">
+      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
         <HeroHeadline label="Find a face to license with consent">
           <HeroLine>
             Find
-            <InlinePill icon={<IconSearch size={30} stroke="#DCF37B" />} />a face
+            <InlinePill icon={<IconSearch size={20} stroke="#DCF37B" />} />a face
           </HeroLine>
           <HeroLine>
-            <AvatarStack seeds={[...creators.slice(0, 3).map((c) => c.address), "silhouette-b", "silhouette-c", "silhouette-d"].slice(0, 3)} size={76} />
+            <AvatarStack seeds={[...creators.slice(0, 3).map((c) => c.address), "silhouette-b", "silhouette-c", "silhouette-d"].slice(0, 3)} size={46} />
             <span>to license</span>
           </HeroLine>
-          <span className="flex flex-wrap items-center gap-5">
+          <span className="flex flex-wrap items-center gap-3.5">
             <span>with</span>
             <form
               role="search"
               onSubmit={(e) => e.preventDefault()}
-              className="flex h-[clamp(64px,7vw,84px)] min-w-0 flex-[1_1_320px] items-center gap-2.5 rounded-[22px] border border-ink-line-2 bg-ink-raised pl-6 pr-3 text-[clamp(16px,1.6vw,20px)] tracking-normal"
+              className="flex h-[56px] min-w-0 flex-[1_1_320px] items-center gap-2.5 rounded-[18px] border border-ink-line-2 bg-ink-raised pl-5 pr-1.5 text-[clamp(15px,1.3vw,17px)] tracking-normal"
             >
               <label htmlFor="creator-search" className="sr-only">
                 Search creators by use, region or address
@@ -80,8 +80,8 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
                 placeholder="consent: search by use, region or address"
                 className="h-full min-w-0 flex-1 border-0 bg-transparent font-medium text-white outline-none placeholder:text-grey-dark"
               />
-              <button type="submit" aria-label="Search" className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-lime text-ink sm:h-[60px] sm:w-[60px]">
-                <IconSearch size={24} />
+              <button type="submit" aria-label="Search" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-lime text-ink">
+                <IconSearch size={20} />
               </button>
             </form>
           </span>
@@ -89,16 +89,16 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
 
         <Link
           href="/#how"
-          className="relative flex min-h-[260px] min-w-0 flex-[1_1_380px] flex-col justify-between overflow-hidden rounded-[30px] bg-lime p-8 text-ink no-underline sm:min-h-[320px]"
+          className="relative flex min-h-[200px] min-w-0 flex-[1_1_340px] flex-col justify-between overflow-hidden rounded-[26px] bg-lime p-6 text-ink no-underline sm:min-h-[240px]"
         >
           <CardRings />
           <span className="relative flex items-start justify-between">
-            <span aria-hidden="true" className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-ink text-white">
-              <IconCamera size={28} />
+            <span aria-hidden="true" className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink text-white">
+              <IconCamera size={22} />
             </span>
-            <IconArrowUpRight size={48} />
+            <IconArrowUpRight size={34} />
           </span>
-          <span className="relative text-[clamp(34px,4vw,46px)] font-bold leading-[1.05] tracking-[-0.02em]">
+          <span className="relative text-[clamp(26px,3vw,34px)] font-bold leading-[1.05] tracking-[-0.02em]">
             How licensing
             <br />
             works
@@ -187,14 +187,14 @@ function CreatorCard({ c, saved, onSave }: { c: MarketCreator; saved: boolean; o
       </div>
       <div className="flex justify-between gap-2.5">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="m-0 flex items-center gap-1.5 text-[20px] font-semibold">
+          <h2 className="m-0 flex items-center gap-1.5 text-[17px] font-semibold">
             <span className="tnum truncate">{name}</span>
             <VerifiedMark />
           </h2>
           <span className="text-[15px] text-grey">{c.region}</span>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-[20px] font-bold">{c.liveness}</span>
+          <span className="text-[17px] font-bold">{c.liveness}</span>
           <span className="text-[13px] text-grey">liveness</span>
         </div>
       </div>
@@ -208,7 +208,7 @@ function CreatorCard({ c, saved, onSave }: { c: MarketCreator; saved: boolean; o
       </div>
       <div className="flex items-baseline justify-between">
         <span className="text-[15px] text-grey">Price per render</span>
-        <span className="tnum text-[28px] font-bold">{c.price}</span>
+        <span className="tnum text-[18px] font-bold">{c.price}</span>
       </div>
       <div className="flex gap-2">
         <button

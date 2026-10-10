@@ -102,12 +102,12 @@ function Verify() {
 
   return (
     <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[110px] pt-8 text-white sm:px-8 sm:pt-11">
+      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
         <div className="flex min-w-0 flex-[999_1_640px] flex-col gap-1">
           <HeroHeadline label="Was this face licensed?" className="flex-none">
             <HeroLine>
               Was this
-              <InlinePill icon={<IconCheck size={28} stroke="#DCF37B" />} />
+              <InlinePill icon={<IconCheck size={20} stroke="#DCF37B" />} />
             </HeroLine>
             <HeroLine>face licensed?</HeroLine>
           </HeroHeadline>
@@ -117,11 +117,11 @@ function Verify() {
               e.preventDefault();
               onFile(e.dataTransfer.files[0]);
             }}
-            className="relative mt-[18px] flex min-h-[84px] cursor-pointer items-center gap-3.5 rounded-[22px] border border-dashed border-[#4A4D55] bg-ink-raised py-3 pl-6 pr-3 text-[clamp(16px,1.6vw,19px)] font-medium text-grey-dark focus-within:outline focus-within:outline-[3px] focus-within:outline-lime"
+            className="relative mt-4 flex min-h-[64px] cursor-pointer items-center gap-3 rounded-[18px] border border-dashed border-[#4A4D55] bg-ink-raised py-2 pl-5 pr-2 text-[clamp(15px,1.3vw,17px)] font-medium text-grey-dark focus-within:outline focus-within:outline-[3px] focus-within:outline-lime"
           >
             <span className="flex-1">{busy ? "Checking…" : "Drop an image, or choose a file"}</span>
-            <span aria-hidden="true" className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-lime text-ink">
-              <IconUpload size={24} />
+            <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-lime text-ink">
+              <IconUpload size={20} />
             </span>
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
           </label>
@@ -151,25 +151,25 @@ function Verify() {
         <article
           aria-label="Result"
           aria-live="polite"
-          className={`relative flex min-h-[340px] min-w-0 flex-[1_1_400px] flex-col justify-between gap-[18px] overflow-hidden rounded-[30px] p-[30px] text-ink ${look?.bg ?? "bg-ink-raised text-white"}`}
+          className={`relative flex min-h-[260px] min-w-0 flex-[1_1_380px] flex-col justify-between gap-4 overflow-hidden rounded-[26px] p-6 text-ink ${look?.bg ?? "bg-ink-raised text-white"}`}
         >
           {look && <CardRings />}
           <div className="relative flex items-start justify-between">
-            <span aria-hidden="true" className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-ink">
-              <Icon size={30} stroke={look?.stroke ?? "#DCF37B"} />
+            <span aria-hidden="true" className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink">
+              <Icon size={22} stroke={look?.stroke ?? "#DCF37B"} />
             </span>
             {l && <span className="rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white">Licence #{l.id.padStart(4, "0")}</span>}
           </div>
           <div className="relative flex flex-col gap-2">
             {result ? (
               <>
-                <span className="text-[clamp(40px,5vw,52px)] font-extrabold leading-none tracking-[-0.02em]">{look!.stamp}</span>
-                <span className="text-[17px] font-medium leading-snug">{subline(result)}</span>
+                <span className="text-[clamp(28px,3.2vw,38px)] font-extrabold leading-none tracking-[-0.02em]">{look!.stamp}</span>
+                <span className="text-[15px] font-medium leading-snug">{subline(result)}</span>
               </>
             ) : (
               <>
-                <span className="text-[clamp(32px,4vw,44px)] font-extrabold leading-none tracking-[-0.02em]">{busy ? "Checking…" : "Ready when you are"}</span>
-                <span className="text-[17px] font-medium leading-snug text-grey-dark">
+                <span className="text-[clamp(24px,2.8vw,32px)] font-extrabold leading-none tracking-[-0.02em]">{busy ? "Checking…" : "Ready when you are"}</span>
+                <span className="text-[15px] font-medium leading-snug text-grey-dark">
                   {error ?? "We hash the file, read its content credential, and look up its receipt on Monad. Nothing is stored."}
                 </span>
               </>
@@ -207,14 +207,14 @@ function Verify() {
                 <>
                   <Link href={`/market/${result.creator.address}`} className="flex items-center gap-3 text-ink no-underline">
                     <Avatar seed={result.creator.address} />
-                    <span className="tnum text-[20px] font-semibold">
+                    <span className="tnum text-[17px] font-semibold">
                       {result.creator.address.slice(0, 6)}…{result.creator.address.slice(-4)}
                     </span>
                   </Link>
                   <TrustPill trust={result.creator.trust} />
                 </>
               ) : (
-                <span className="text-[17px] text-grey">No licensed creator for this file</span>
+                <span className="text-[15px] text-grey">No licensed creator for this file</span>
               )}
             </div>
 
@@ -224,20 +224,20 @@ function Verify() {
                 <>
                   <span className="flex items-center gap-3">
                     <Initial name={brand ?? l.licensee.slice(2)} />
-                    <span className="truncate text-[20px] font-semibold">{brand ?? `${l.licensee.slice(0, 6)}…${l.licensee.slice(-4)}`}</span>
+                    <span className="truncate text-[17px] font-semibold">{brand ?? `${l.licensee.slice(0, 6)}…${l.licensee.slice(-4)}`}</span>
                   </span>
                   <span className="self-start">
                     <TagChip>{l.use}</TagChip>
                   </span>
                 </>
               ) : (
-                <span className="text-[17px] text-grey">None on record</span>
+                <span className="text-[15px] text-grey">None on record</span>
               )}
             </div>
 
             <div className="flex flex-col gap-3 rounded-[26px] bg-white p-6">
               <span className="text-[15px] text-grey">Licence now</span>
-              <span className="text-[30px] font-bold">{l ? (l.status === "Exhausted" ? "Used up" : l.status === "Active" ? "Active" : l.status) : "None"}</span>
+              <span className="text-[20px] font-bold">{l ? (l.status === "Exhausted" ? "Used up" : l.status === "Active" ? "Active" : l.status) : "None"}</span>
               <span className="text-[14px] text-grey">{licenceDetail(result)}</span>
             </div>
 
@@ -276,6 +276,43 @@ function Verify() {
               </Check>
             </ul>
 
+            {result.manifest?.present && (
+              <section aria-labelledby="c2pa-title" className="flex flex-col gap-3 rounded-[26px] bg-white p-6 lg:col-span-4">
+                <h2 id="c2pa-title" className="m-0 text-[17px] font-semibold">
+                  Content credential (C2PA)
+                </h2>
+                <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-2 text-[15px] sm:grid-cols-[9rem_1fr]">
+                  <dt className="text-grey">Signature</dt>
+                  <dd className="m-0">{result.manifest.signatureValid ? <StatusPill kind="licensed">valid</StatusPill> : <StatusPill kind="revoked">does not validate</StatusPill>}</dd>
+                  <dt className="text-grey">Signed by</dt>
+                  <dd className="m-0 flex flex-wrap items-center gap-2">
+                    {result.manifest.signer.commonName ?? "unknown"}
+                    {!result.manifest.trustedSigner && <StatusPill kind="waiting">test certificate, not on the C2PA trust list</StatusPill>}
+                  </dd>
+                  <dt className="text-grey">Claims</dt>
+                  <dd className="m-0">
+                    {result.manifest.licence
+                      ? `Licence #${result.manifest.licence.licenceId}, render ${result.manifest.licence.renderIndex}${result.manifestMatches === false ? " (does not match the receipt)" : result.manifestMatches ? " (matches the receipt)" : ""}`
+                      : "No licence claim"}
+                  </dd>
+                  {result.manifest.licence && (
+                    <>
+                      <dt className="text-grey">Renderer</dt>
+                      <dd className="m-0">
+                        {result.manifest.licence.renderer.test ? (
+                          <StatusPill kind="waiting">TEST RENDER (no model)</StatusPill>
+                        ) : (
+                          `${result.manifest.licence.renderer.provider} · ${result.manifest.licence.renderer.model}`
+                        )}
+                      </dd>
+                    </>
+                  )}
+                </dl>
+              </section>
+            )}
+            {result.manifest && !result.manifest.present && result.manifest.error && (
+              <p className="m-0 text-[14px] text-grey lg:col-span-4">No C2PA manifest in this file ({result.manifest.error}).</p>
+            )}
             {result.revoked && (
               <p className="m-0 text-[14px] text-grey lg:col-span-4">
                 Revoked {fmtDate(result.revoked.at)}: <Tx hash={result.revoked.tx} />

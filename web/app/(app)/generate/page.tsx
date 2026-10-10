@@ -172,7 +172,7 @@ function Generate() {
         {selected && (
           <LimeCard label="This render">
             <span className="text-[15px] font-semibold">Each render pays the creator</span>
-            <span className="tnum text-[clamp(44px,5vw,64px)] font-bold leading-none tracking-[-0.03em]">${usdc.format(BigInt(selected.pricePerRender))}</span>
+            <span className="tnum text-[clamp(32px,3.4vw,42px)] font-bold leading-none tracking-[-0.03em]">${usdc.format(BigInt(selected.pricePerRender))}</span>
             <span className="text-[15px]">
               USDC from escrow · {left} of {selected.renderCap} renders left · {usdc.format(BigInt(selected.escrow.balance))} USDC in escrow
             </span>
@@ -202,7 +202,7 @@ function Generate() {
         {active.length > 0 && (
           <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <Tile as="section">
-              <h2 className="m-0 text-[22px] font-semibold">Brief</h2>
+              <h2 className="m-0 text-[19px] font-semibold">Brief</h2>
               <Field label="Licence">
                 <select className={inputClass} value={id} onChange={(e) => setId(e.target.value)}>
                   {active.map((l) => (
@@ -244,7 +244,7 @@ function Generate() {
             </Tile>
             {selected && pre && (
               <section aria-labelledby="checks-title" className="on-dark flex flex-col gap-4 rounded-[26px] bg-ink p-6 text-white">
-                <h2 id="checks-title" className="m-0 text-[22px] font-semibold">
+                <h2 id="checks-title" className="m-0 text-[19px] font-semibold">
                   Before you render
                 </h2>
                 <ul className="m-0 flex list-none flex-col gap-3 p-0 text-[15px]">

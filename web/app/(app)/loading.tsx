@@ -2,7 +2,7 @@
 export default function Loading() {
   return (
     <div role="status" aria-label="Loading">
-      <section className="mx-auto flex max-w-[1320px] flex-wrap items-end gap-10 px-4 pb-[110px] pt-8 sm:px-8 sm:pt-11">
+      <section className="mx-auto flex max-w-[1320px] flex-wrap items-end gap-10 px-4 pb-[84px] pt-7 sm:px-8 sm:pt-9">
         <div className="flex flex-[999_1_640px] flex-col gap-4">
           <span className="block h-16 w-3/4 animate-pulse rounded-[20px] bg-ink-raised motion-reduce:animate-none" />
           <span className="block h-16 w-1/2 animate-pulse rounded-[20px] bg-ink-raised motion-reduce:animate-none" />

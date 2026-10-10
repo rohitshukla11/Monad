@@ -35,11 +35,11 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
             <IconArrowLeft size={18} /> All creators
           </Link>
           <div className="flex flex-wrap items-center gap-5">
-            <Avatar seed={c.address} size={96} ring="#121316" />
-            <h1 className="m-0 flex min-w-0 flex-wrap items-center gap-3 font-mono text-[clamp(30px,5vw,56px)] font-bold tracking-[-0.03em]">
+            <Avatar seed={c.address} size={68} ring="#121316" />
+            <h1 className="m-0 flex min-w-0 flex-wrap items-center gap-3 font-mono text-[clamp(24px,3.2vw,36px)] font-bold tracking-[-0.03em]">
               <span className="sr-only">Creator </span>
               {shortAddr(c.address)}
-              {verified && <VerifiedMark size={36} />}
+              {verified && <VerifiedMark size={26} />}
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -53,7 +53,7 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
         </div>
         <LimeCard label="Licence price">
           <span className="text-[15px] font-semibold">Price per render</span>
-          <span className="tnum text-[clamp(44px,5vw,64px)] font-bold leading-none tracking-[-0.03em]">${usdc.format(c.terms.pricePerRender)}</span>
+          <span className="tnum text-[clamp(32px,3.4vw,42px)] font-bold leading-none tracking-[-0.03em]">${usdc.format(c.terms.pricePerRender)}</span>
           <span className="text-[15px]">
             USDC, paid from escrow per render. Up to {c.terms.maxRenders} renders over {formatDuration(c.terms.maxDuration)}.
           </span>
@@ -79,7 +79,7 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
 
         <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-2">
           <Tile as="section">
-            <h2 className="m-0 text-[22px] font-semibold">Verification</h2>
+            <h2 className="m-0 text-[19px] font-semibold">Verification</h2>
             <dl className="m-0 grid grid-cols-1 gap-x-4 gap-y-2 text-[15px] sm:grid-cols-[11rem_1fr]">
               <dt className="text-grey">Liveness provider</dt>
               <dd className="m-0">
@@ -118,7 +118,7 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
             {c.trust.level === "unverified-test" && <Note>This is a seeded test creator. No liveness or ID check was run; its images are synthetic placeholders.</Note>}
           </Tile>
           <Tile as="section">
-            <h2 className="m-0 text-[22px] font-semibold">Terms</h2>
+            <h2 className="m-0 text-[19px] font-semibold">Terms</h2>
             <div className="flex flex-wrap gap-2">
               {categoryLabels(c.terms.categories).map((l) => (
                 <TagChip key={l}>{l}</TagChip>

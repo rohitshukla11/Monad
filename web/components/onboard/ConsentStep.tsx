@@ -42,7 +42,7 @@ export function ConsentStep({ wallet, onDone, always = false }: { wallet: Active
 
   return (
     <div className="space-y-4">
-      <h3 className="m-0 text-[22px] font-bold">Before we verify you</h3>
+      <h3 className="m-0 text-[20px] font-bold">Before we verify you</h3>
       <ol className="m-0 list-decimal space-y-2 pl-5 text-[15px] text-[#3E4148]">
         {CONSENT_POINTS.map((p) => (
           <li key={p}>{p}</li>

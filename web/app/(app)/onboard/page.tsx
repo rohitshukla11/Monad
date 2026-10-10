@@ -12,11 +12,11 @@ export default function Onboard() {
   const didit = isConfigured("didit");
   return (
     <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-end gap-10 px-4 pb-[110px] pt-8 text-white sm:px-8 sm:pt-11">
+      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-end gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
         <HeroHeadline label="License your face in three steps">
           <HeroLine>
             License your face
-            <InlinePill icon={<IconShield size={26} stroke="#DCF37B" />}>18+ only</InlinePill>
+            <InlinePill icon={<IconShield size={18} stroke="#DCF37B" />}>18+ only</InlinePill>
           </HeroLine>
           <HeroLine muted>in three steps</HeroLine>
         </HeroHeadline>

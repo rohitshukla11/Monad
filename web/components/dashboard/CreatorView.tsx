@@ -107,11 +107,11 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
 
   return (
     <>
-      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[110px] pt-8 text-white sm:px-8 sm:pt-11">
+      <section className="on-dark mx-auto flex max-w-[1320px] flex-wrap items-stretch gap-10 px-4 pb-[84px] pt-7 text-white sm:px-8 sm:pt-9">
         <HeroHeadline label={`Your face earned ${money(earnedWeek)} this week`}>
           <HeroLine>
             Your face
-            <InlinePill icon={<IconShield size={26} stroke="#DCF37B" />}>{verified ? "Verified" : "Not verified"}</InlinePill>
+            <InlinePill icon={<IconShield size={18} stroke="#DCF37B" />}>{verified ? "Verified" : "Not verified"}</InlinePill>
           </HeroLine>
           <HeroLine>earned {money(earnedWeek)}</HeroLine>
           <HeroLine muted>this week</HeroLine>
@@ -122,16 +122,16 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
             <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">
               Waiting for you{requests.length > 1 ? ` · ${requests.length} requests` : ""}
             </span>
-            <h2 className="m-0 text-[clamp(26px,3vw,34px)] font-bold leading-[1.1] tracking-[-0.02em]">{oldest.brief.brand} wants to license you</h2>
+            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">{oldest.brief.brand} wants to license you</h2>
             <p className="m-0 text-[15px] leading-relaxed">
               {categoryLabels(Number(oldest.request.category)).join()} · {oldest.request.renderCap} renders · {formatDuration(BigInt(oldest.request.duration))} · {money(BigInt(oldest.request.pricePerRender))} per render
               <br />“{oldest.brief.campaign}”
             </p>
             <div className="mt-auto flex flex-wrap gap-2.5">
-              <button type="button" disabled={busy} onClick={() => approve(oldest)} className="min-h-[54px] flex-1 rounded-[18px] bg-ink px-5 text-[16px] font-semibold text-white disabled:opacity-50">
+              <button type="button" disabled={busy} onClick={() => approve(oldest)} className="min-h-12 flex-1 rounded-[18px] bg-ink px-5 text-[15px] font-semibold text-white disabled:opacity-50">
                 Approve
               </button>
-              <button type="button" disabled={busy} onClick={() => decline(oldest)} className="min-h-[54px] rounded-[18px] border-2 border-ink bg-transparent px-5 text-[16px] font-semibold text-ink disabled:opacity-50">
+              <button type="button" disabled={busy} onClick={() => decline(oldest)} className="min-h-12 rounded-[18px] border-2 border-ink bg-transparent px-5 text-[15px] font-semibold text-ink disabled:opacity-50">
                 Decline
               </button>
             </div>
@@ -139,10 +139,10 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
         ) : (
           <LimeCard label="Share your profile">
             <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">No requests waiting</span>
-            <h2 className="m-0 text-[clamp(26px,3vw,34px)] font-bold leading-[1.1] tracking-[-0.02em]">Share your profile</h2>
+            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">Share your profile</h2>
             <p className="m-0 text-[15px] leading-relaxed">Brands find you in the marketplace. Send them your page so they can request a licence directly.</p>
             <div className="mt-auto flex flex-wrap gap-2.5">
-              <Link href={`/market/${creator.address}`} className="flex min-h-[54px] flex-1 items-center justify-center rounded-[18px] bg-ink px-5 text-[16px] font-semibold text-white no-underline">
+              <Link href={`/market/${creator.address}`} className="flex min-h-12 flex-1 items-center justify-center rounded-[18px] bg-ink px-5 text-[15px] font-semibold text-white no-underline">
                 Open my profile
               </Link>
               <CopyLink path={`/market/${creator.address}`} />
@@ -164,7 +164,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
           >
             <CardRings stroke="#FFFFFF" opacity={0.35} />
             <span className="relative text-[15px] text-violet-soft">Verification</span>
-            <span className="relative text-[30px] font-bold leading-[1.1]">{!verified ? "Not verified" : passive ? "Passive liveness" : "Active liveness"}</span>
+            <span className="relative text-[20px] font-bold leading-[1.1]">{!verified ? "Not verified" : passive ? "Passive liveness" : "Active liveness"}</span>
             <span className="relative inline-flex items-center gap-1.5 text-[14px] font-semibold">
               {canUpgrade ? (
                 <>
@@ -224,7 +224,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
                   <div className="flex min-w-0 items-center gap-3">
                     <Initial name={brand} dark={isActive} />
                     <div className="flex min-w-0 flex-col">
-                      <h3 className={`m-0 truncate text-[20px] font-semibold ${isActive ? "" : "text-grey"}`}>{brand}</h3>
+                      <h3 className={`m-0 truncate text-[17px] font-semibold ${isActive ? "" : "text-grey"}`}>{brand}</h3>
                       <span className="text-[14px] text-grey">Licence {pad(l.id)}</span>
                     </div>
                   </div>
@@ -240,7 +240,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
                   <span className="text-[15px] text-grey">
                     {l.renderCount} of {l.renderCap} renders
                   </span>
-                  <span className={`tnum text-[28px] font-bold ${isActive ? "" : "text-grey"}`}>{money(BigInt(l.escrow.paidToCreator))}</span>
+                  <span className={`tnum text-[18px] font-bold ${isActive ? "" : "text-grey"}`}>{money(BigInt(l.escrow.paidToCreator))}</span>
                 </div>
                 {isActive && !l.release.released && (
                   <div className="rounded-2xl bg-wait-bg p-3 text-[14px] text-wait">
@@ -249,7 +249,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
                   </div>
                 )}
                 <div className="flex gap-2">
-                  <a href="#renders" className="flex min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-field font-semibold text-ink no-underline">
+                  <a href="#renders" className="flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-field font-semibold text-ink no-underline">
                     {isActive ? "See renders" : "See history"}
                   </a>
                   {isActive && (
@@ -257,7 +257,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
                       type="button"
                       disabled={busy}
                       onClick={() => run(`Revoking licence ${pad(l.id)}…`, () => write(wallet, { address: deployment.LicenseRegistry!, abi: LicenseRegistryAbi, functionName: "revoke", args: [BigInt(l.id)] }))}
-                      className="min-h-[52px] flex-1 rounded-2xl bg-red font-semibold text-ink disabled:opacity-50"
+                      className="min-h-11 flex-1 rounded-2xl bg-red font-semibold text-ink disabled:opacity-50"
                     >
                       Revoke
                     </button>
@@ -269,7 +269,7 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
 
           <article className="on-dark flex flex-col gap-3.5 rounded-[26px] bg-ink p-6 text-white">
             <div className="flex items-center justify-between gap-2.5">
-              <h3 className="m-0 text-[22px] font-semibold">Your terms</h3>
+              <h3 className="m-0 text-[19px] font-semibold">Your terms</h3>
               <button type="button" onClick={() => setEditing(!editing)} aria-expanded={editing} className="min-h-11 rounded-full bg-lime px-[18px] font-semibold text-ink">
                 {editing ? "Close" : "Edit"}
               </button>
@@ -367,7 +367,7 @@ function CopyLink({ path }: { path: string }) {
           setTimeout(() => setDone(false), 2000);
         } catch {}
       }}
-      className="min-h-[54px] rounded-[18px] border-2 border-ink bg-transparent px-5 text-[16px] font-semibold text-ink"
+      className="min-h-12 rounded-[18px] border-2 border-ink bg-transparent px-5 text-[15px] font-semibold text-ink"
     >
       <span aria-live="polite">{done ? "Copied" : "Copy link"}</span>
     </button>

@@ -57,8 +57,8 @@ export function CaptureStep({ onDone }: { onDone: (captures: Uint8Array[]) => vo
             <li key={p} aria-label={`${p}${i < shots.length ? " (taken)" : ""}`} className={`h-2.5 w-10 rounded-full ${i < shots.length ? "bg-ok" : i === shots.length ? "bg-ink" : "bg-field"}`} />
           ))}
         </ol>
-        <p className="m-0 text-[22px] font-semibold">{POSES[Math.min(shots.length, POSES.length - 1)]}</p>
-        <button type="button" onClick={take} disabled={shots.length >= POSES.length} className={pillClass("ink", "self-start min-h-[54px] px-7")}>
+        <p className="m-0 text-[18px] font-semibold">{POSES[Math.min(shots.length, POSES.length - 1)]}</p>
+        <button type="button" onClick={take} disabled={shots.length >= POSES.length} className={pillClass("ink", "self-start")}>
           <IconCamera size={18} /> Take photo
         </button>
         <p className="m-0 max-w-xs text-[13px] text-grey">Photos stay in this browser&apos;s memory until they are encrypted.</p>

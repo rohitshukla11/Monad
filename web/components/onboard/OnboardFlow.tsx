@@ -93,10 +93,10 @@ export function OnboardFlow() {
               aria-current={now ? "step" : undefined}
               className={`flex items-center gap-3 rounded-[20px] px-5 py-4 ${now ? "bg-ink text-white" : done ? "bg-white text-ink" : "bg-white/60 text-grey"}`}
             >
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-semibold ${now ? "bg-lime text-ink" : done ? "bg-ok-bg text-ok" : "bg-[#E3E6EC] text-grey"}`}>
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-semibold ${now ? "bg-lime text-ink" : done ? "bg-ok-bg text-ok" : "bg-[#E3E6EC] text-grey"}`}>
                 {done ? <IconCheck size={16} stroke="#3B6E25" /> : n}
               </span>
-              <span className="text-[17px] font-semibold">{t}</span>
+              <span className="text-[15px] font-semibold">{t}</span>
               {done && <span className="sr-only">(done)</span>}
             </li>
           );
@@ -115,7 +115,7 @@ export function OnboardFlow() {
         {step === 3 && wallet && deployment.CreatorRegistry && <ProtectStep wallet={wallet} onDone={(f) => (note(f), setRegistered(true))} onFingerprint={(fingerprint) => note({ fingerprint })} />}
         {step === 4 && (
           <div className="flex flex-col items-start gap-4">
-            <h2 className="m-0 text-[28px] font-bold tracking-[-0.02em]">You&apos;re a registered, verified creator</h2>
+            <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">You&apos;re a registered, verified creator</h2>
             <p className="m-0 text-[16px] text-grey">Brands can now find you in the marketplace and request a licence. You approve each one from your dashboard.</p>
             <div className="flex flex-wrap gap-3">
               <Link href="/dashboard" className={pillClass("ink")}>
@@ -185,7 +185,7 @@ function SignIn() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="m-0 text-[28px] font-bold tracking-[-0.02em]">Sign in with your email</h2>
+      <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Sign in with your email</h2>
       <p className="m-0 max-w-2xl text-[16px] text-grey">We create your wallet on Monad as you sign in, and send it a little MON for gas. No seed phrase, no extension.</p>
       {!user.data && !otp && (
         <form
@@ -273,7 +273,7 @@ function VerifyStep({ wallet, consented, onConsent, onVerified }: { wallet: Acti
   if (consented) return <DiditStep address={wallet.address} onDone={onVerified} />;
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="m-0 text-[28px] font-bold tracking-[-0.02em]">Verify it&apos;s you</h2>
+      <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Verify it&apos;s you</h2>
       <p className="m-0 max-w-3xl text-[16px] text-grey">
         Didit checks your ID (we only learn that you are 18 or over), takes a liveness selfie and matches it to your ID. First, what you are agreeing to:
       </p>
@@ -297,7 +297,7 @@ function VerifyStep({ wallet, consented, onConsent, onVerified }: { wallet: Acti
         <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1 h-5 w-5 accent-[#121316]" />
         <span>I agree, including to Didit processing my identity document and my face (biometric data) for this verification.</span>
       </label>
-      <button type="button" disabled={!checked || busy} onClick={agreeAndStart} className={pillClass("ink", "self-start min-h-[54px] px-7")}>
+      <button type="button" disabled={!checked || busy} onClick={agreeAndStart} className={pillClass("ink", "self-start")}>
         {busy ? "Signing…" : "Agree and start verification"}
       </button>
       <p className="m-0 text-[13px] text-grey">Your wallet signs this consent; Didit opens in a new tab.</p>
@@ -373,7 +373,7 @@ function ProtectStep({ wallet, onDone, onFingerprint }: { wallet: ActiveWallet; 
   if (!matched)
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="m-0 text-[28px] font-bold tracking-[-0.02em]">Capture and protect</h2>
+        <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Capture and protect</h2>
         <p className="m-0 max-w-3xl text-[16px] text-grey">Three quick photos. Each is matched to your liveness selfie, then encrypted in this browser before anything is stored.</p>
         <CaptureStep onDone={check} />
         {busy && <p role="status" className="m-0 text-[15px]">Matching your photos to your selfie…</p>}
@@ -383,7 +383,7 @@ function ProtectStep({ wallet, onDone, onFingerprint }: { wallet: ActiveWallet; 
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="m-0 text-[28px] font-bold tracking-[-0.02em]">Protect and register</h2>
+      <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Protect and register</h2>
       <p className="m-0 flex items-center gap-2 text-[16px] text-ok">
         <IconCheck size={18} /> All three photos match your selfie ({matched.map((x) => x.toFixed(0)).join(" / ")}).
       </p>
@@ -401,7 +401,7 @@ function ProtectStep({ wallet, onDone, onFingerprint }: { wallet: ActiveWallet; 
         <input type="checkbox" checked={existing} onChange={(e) => setExisting(e.target.checked)} className="h-5 w-5 accent-[#121316]" />
         I already have a Likeness passkey on this device
       </label>
-      <button type="button" disabled={busy} onClick={protect} className={pillClass("lime", "self-start min-h-[54px] px-7 text-[16px]")}>
+      <button type="button" disabled={busy} onClick={protect} className={pillClass("lime", "self-start")}>
         {busy ? "Working…" : "Protect with Face ID and register"}
       </button>
       {log.length > 0 && (
