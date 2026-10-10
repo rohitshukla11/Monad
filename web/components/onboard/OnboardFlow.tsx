@@ -654,6 +654,17 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
       onRegistered();
     } catch (e) {
       const text = passkeyError(e);
+      if (/no matched reference photos/.test(text)) {
+        // The photo check's record expired (30 minutes) or was used: start the photos again.
+        sealed.current = null;
+        thumbs.forEach((t) => t && URL.revokeObjectURL(t));
+        setThumbs([null, null, null]);
+        setShots([null, null, null]);
+        setStates(["empty", "empty", "empty"]);
+        setLines([]);
+        setMatchError("Your photo check has expired. Take the three photos again; it only takes a moment.");
+        return;
+      }
       setError(/insufficient funds|exceeds the balance/i.test(text) ? "Your wallet has no MON for gas yet. Use Retry under this card, then try again." : text);
     } finally {
       setBusy(false);

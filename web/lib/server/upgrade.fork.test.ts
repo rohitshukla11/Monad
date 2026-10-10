@@ -71,9 +71,7 @@ describe.skipIf(!run)("re-verify at a higher level", () => {
       address: creator, sessionId, level, environment: "live", state: "approved", sessionStatus: "Approved", reasons: [], createdAt: Date.now(), decidedAt: Date.now(),
       checks: { adult: true, livenessMethod: method },
     });
-    const g = globalThis as unknown as Record<string, Map<string, unknown>>;
-    g["__likeness_captures-passed"] ??= new Map();
-    g["__likeness_captures-passed"].set(creator, { address: creator, sessionId, digests: set.digests, scores: [90, 90, 90], matcher: "didit", at: Date.now() });
+    await dbPut("captures-passed", creator, { address: creator, sessionId, digests: set.digests, scores: [90, 90, 90], matcher: "didit", at: Date.now() });
   }
 
   it("refuses a second registration and a same-level re-attestation", async () => {

@@ -185,20 +185,27 @@ to Blob. If the RPC refuses a batch, the request serves the history read so far,
 continues from there. With this deployment's start block that takes only a few requests. A hosted Envio indexer
 (`ENVIO_GRAPHQL_URL`) replaces the scan. `pnpm index:seed-blob` uploads a caught-up local cache.
 
+How the free-level photo check runs on Vercel:
+
+- The ONNX runtime's Linux library ships with the photo-check route (see `outputFileTracingIncludes` in
+  `web/next.config.ts`).
+- The face model (260 MB) is too large to ship. It is fetched on first use into `/tmp`, from the pinned
+  URLs, and checked against the same SHA-256 as `pnpm face:models`. The first photo check on a new
+  server instance therefore takes longer.
+- The record that the three photos matched (their hashes and scores, never images) is kept in the
+  record store for up to 30 minutes, so the attestation step finds it on any instance.
+
 Known limits on Vercel, accepted for the testnet demo:
 
-- **Free-level photo check:** the face model (260 MB) is above Vercel's function size limit, so it
-  does not run. At `VERIFICATION_LEVEL=free`, onboarding says so at the photo step and cannot finish.
-  Use `full` (Didit matches the photos; needs Didit credit), or onboard on a server that has the model.
-- **One instance's memory:** render keys and matched-photo records live in one instance's memory by
-  design. When Vercel routes a later request to another instance, a photo release or a registration
-  may need a retry.
+- **One instance's memory:** render keys live in one instance's memory by design, so they are never
+  written anywhere. When Vercel routes a later request to another instance, a creator's photo release
+  may need repeating.
 - **Passkeys:** they are bound to `NEXT_PUBLIC_RP_ID`, so preview deployments on other domains cannot
   open photos sealed on production.
 
 **Other hosts:** [`web/Dockerfile`](web/Dockerfile) runs the app as one always-on container with a
 volume at `/data` (configured for Railway in [`web/railway.json`](web/railway.json)). There the
-free-level matcher runs and nothing lives across instances. Set the same variables, without
+face model stays on the volume and nothing lives across instances. Set the same variables, without
 `STORE_DRIVER`.
 
 ## App

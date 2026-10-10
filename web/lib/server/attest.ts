@@ -56,7 +56,7 @@ export async function attest(address: Address, set: ReferenceSet, mode: "registe
   if (identity.level !== verificationLevel()) throw new AttestError(409, `this wallet was verified at level ${identity.level}; the server now requires ${verificationLevel()}`);
   if (identity.environment === "unknown") throw new AttestError(409, "Didit did not say whether this was a live or sandbox session");
 
-  const passed = peekPassed(who);
+  const passed = await peekPassed(who);
   if (!passed || passed.sessionId !== identity.sessionId) throw new AttestError(409, "no matched reference photos for this wallet; take them again");
   if (set.digests.length !== passed.digests.length || set.digests.some((d, i) => d !== passed.digests[i]))
     throw new AttestError(422, "the encrypted reference set is not the set of photos that matched your liveness selfie");
@@ -70,7 +70,7 @@ export async function attest(address: Address, set: ReferenceSet, mode: "registe
     if (LIVENESS_RANK[newMethod] <= LIVENESS_RANK[current])
       throw new AttestError(409, `not an upgrade: the new verification used ${newMethod} liveness and the current attestation has ${current}`);
   }
-  takePassed(who); // consume only once every check has passed
+  await takePassed(who); // consume only once every check has passed
 
   // The server's own chain (a local fork in tests and the demo), so the nonce matches the one that verifies.
   const nonce = await pub().readContract({ address: registry, abi: CreatorRegistryAbi, functionName: "attestationNonce", args: [address] });

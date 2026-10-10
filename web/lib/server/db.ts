@@ -7,8 +7,8 @@ import "server-only";
  * Same STORE_DRIVER switch as the vault: "local" writes JSON files under DB_DIR (default .data/db,
  * git-ignored); "blob" writes private Vercel Blob objects under db/.
  */
-import { get, list, put } from "@vercel/blob";
-import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
+import { del, get, list, put } from "@vercel/blob";
+import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const useBlob = (process.env.STORE_DRIVER ?? "local") === "blob";
@@ -50,6 +50,15 @@ export async function dbPut<T>(collection: string, id: string, value: T): Promis
   const file = path.join(dir(collection), `${id}.json`);
   await writeFile(`${file}.tmp`, body);
   await rename(`${file}.tmp`, file);
+}
+
+export async function dbDelete(collection: string, id: string): Promise<void> {
+  check(collection, id);
+  if (useBlob) {
+    await del(`db/${collection}/${id}.json`).catch(() => {});
+    return;
+  }
+  await rm(path.join(dir(collection), `${id}.json`), { force: true });
 }
 
 export async function dbList<T>(collection: string): Promise<T[]> {

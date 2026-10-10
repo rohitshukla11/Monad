@@ -4,12 +4,14 @@ import "server-only";
  *  - VERIFICATION_LEVEL=full: Didit's 1:1 face match (save_api_request=false, so Didit stores nothing);
  *  - VERIFICATION_LEVEL=free: our local matcher (lib/server/facematch), on this server, in memory.
  * The matcher used is the one for the level the creator's Didit session ran at. On success only the
- * sha256 digests of the captures are kept, in memory, until the attestation is signed or the record
- * expires; the attester signs only a reference set whose plaintext digests equal these.
+ * sha256 digests of the captures (with the scores and the Didit session reference, never an image) are
+ * kept, in the app's record store, until the attestation is signed or the record expires after 30
+ * minutes; the attester signs only a reference set whose plaintext digests equal these. The store, not
+ * memory, so a later request on another server instance (Vercel) still finds the record.
  */
 import { createHash } from "node:crypto";
 import type { Address } from "viem";
-import { singleton } from "./chain";
+import { dbDelete, dbGet, dbPut } from "./db";
 import { faceMatch, getIdentity, livenessSelfie } from "./didit";
 import { compareFaces, FaceMatchError, localThreshold } from "./facematch";
 
@@ -17,7 +19,7 @@ const RECORD_TTL = 30 * 60_000;
 const threshold = () => Number(process.env.DIDIT_CAPTURE_MATCH_THRESHOLD ?? 60);
 
 type Passed = { address: string; sessionId: string; digests: string[]; scores: number[]; matcher: "didit" | "local"; at: number };
-const passed = singleton("captures-passed", () => new Map<string, Passed>());
+const COLLECTION = "captures-passed";
 
 export class CaptureError extends Error {
   constructor(
@@ -59,18 +61,18 @@ export async function verifyCaptures(address: Address, captures: Uint8Array[]) {
   }
   const digests = captures.map((c) => createHash("sha256").update(c).digest("hex"));
   const matcher = identity.level === "full" ? "didit" : "local";
-  passed.set(who, { address: who, sessionId: identity.sessionId, digests, scores, matcher, at: Date.now() });
+  await dbPut<Passed>(COLLECTION, who, { address: who, sessionId: identity.sessionId, digests, scores, matcher, at: Date.now() });
   return { scores, digests, matcher };
 }
 
-export function peekPassed(address: string): Passed | undefined {
-  const p = passed.get(address.toLowerCase());
+export async function peekPassed(address: string): Promise<Passed | undefined> {
+  const p = await dbGet<Passed>(COLLECTION, address.toLowerCase());
   return p && Date.now() - p.at <= RECORD_TTL ? p : undefined;
 }
 
 /** The record the attester relies on; consumed once. */
-export function takePassed(address: string): Passed | undefined {
-  const p = peekPassed(address);
-  passed.delete(address.toLowerCase());
+export async function takePassed(address: string): Promise<Passed | undefined> {
+  const p = await peekPassed(address);
+  await dbDelete(COLLECTION, address.toLowerCase());
   return p;
 }
