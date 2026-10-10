@@ -290,3 +290,47 @@ export function Details({ summary, children }: { summary: string; children: Reac
     </details>
   );
 }
+
+// ---------------------------------------------------------------- creator faces and brand chips
+
+/** A creator's public photo (watermarked, 512 px) as a round avatar, or the neutral silhouette. */
+export function CreatorFace({ seed, photo, size = 52, ring, label }: { seed: string; photo?: string | null; size?: number; ring?: string; label?: string }) {
+  if (!photo) return <Avatar seed={seed} size={size} ring={ring} />;
+  return (
+    <span
+      className="block shrink-0 overflow-hidden rounded-full bg-[#E3E6EC]"
+      style={{ width: size, height: size, border: ring ? `3px solid ${ring}` : undefined }}
+      {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photo} alt="" width={size} height={size} className="h-full w-full object-cover" />
+    </span>
+  );
+}
+
+/** A licensee as creators see it: logo, name and the server-computed badge. */
+export function BrandChip({ brand, fallback }: { brand?: { name: string; logo: string | null; badge: "verified-domain" | "unverified" } | null; fallback?: string }) {
+  if (!brand)
+    return (
+      <span className="inline-flex flex-wrap items-center gap-2">
+        <span className="font-semibold">{fallback ?? "Brand"}</span>
+        <StatusPill kind="neutral" title="This brand has not completed a Likeness brand profile">No brand profile</StatusPill>
+      </span>
+    );
+  return (
+    <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+      {brand.logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={brand.logo} alt="" width={24} height={24} className="h-6 w-6 shrink-0 rounded-md bg-white object-contain" />
+      ) : (
+        <Initial name={brand.name} size={24} />
+      )}
+      <span className="font-semibold">{brand.name}</span>
+      {brand.badge === "verified-domain" ? (
+        <StatusPill kind="licensed" title="The brand proved a work email at its website's domain">Verified domain</StatusPill>
+      ) : (
+        <StatusPill kind="waiting" title="The brand has not proved a work email at its website's domain">Unverified brand</StatusPill>
+      )}
+    </span>
+  );
+}

@@ -4,13 +4,15 @@ import { useLogout } from "@dynamic-labs-sdk/react-hooks";
 import Link from "next/link";
 import type { Address } from "viem";
 import { useDynamicState } from "@/app/providers";
-import { Avatar } from "@/components/ds";
+import { CreatorFace } from "@/components/ds";
+import { useProfiles } from "@/lib/client/profiles";
 import { useWallet } from "./WalletProvider";
 
 /** Header identity: the wallet the app is acting as (DEV wallets marked), and the per-tab DEV picker. */
 export function WalletBadge() {
   const { wallet, devWallets, useDev } = useWallet();
   const dynamic = useDynamicState();
+  const profiles = useProfiles(wallet ? [wallet.address] : []);
   return (
     <div className="flex flex-wrap items-center justify-end gap-3 text-[15px]">
       {devWallets.length > 0 && (
@@ -34,7 +36,7 @@ export function WalletBadge() {
           <span className="tnum font-medium" title={`${wallet.label}: ${wallet.address}`}>
             {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
           </span>
-          <Avatar seed={wallet.address} size={52} />
+          <CreatorFace seed={wallet.address} photo={profiles[wallet.address.toLowerCase()]?.photo} size={52} />
           {wallet.kind === "dynamic" && dynamic === "ready" && <SignOut />}
         </span>
       ) : (

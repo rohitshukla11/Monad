@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { isAddress, type Address } from "viem";
 import { RequestLicence } from "@/components/market/RequestLicence";
-import { Avatar, EmptyState, LimeCard, NoticePage, PageHero, Panel, StatCard, TagChip, Tile, pillClass } from "@/components/ds";
+import { SamplesGallery } from "@/components/profile/SamplesGallery";
+import { BrandGate } from "@/components/brand/BrandGate";
+import { CreatorFace, EmptyState, LimeCard, NoticePage, PageHero, Panel, StatCard, TagChip, Tile, pillClass } from "@/components/ds";
 import { IconArrowLeft, VerifiedMark } from "@/components/ds/icons";
 import { Addr, Note, Tx, TrustBadge, fmtDay, shortAddr } from "@/components/ui";
 import { categoryLabels, regionLabels } from "@/lib/categories";
 import { explorer } from "@/lib/chain";
 import { formatDuration, usdc } from "@/lib/licensing";
+import { publicProfile } from "@/lib/server/profiles";
 import { readCreatorWithHistory } from "@/lib/server/protocol";
 import { LEVEL_SUMMARY, LIVENESS_NOTE } from "@/lib/verification";
 
@@ -25,6 +28,7 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
   if (!c) return <NoticePage title="Not a registered creator">No creator is registered at {shortAddr(address)}.</NoticePage>;
   const terms = { ...c.terms, maxDuration: c.terms.maxDuration.toString(), pricePerRender: c.terms.pricePerRender.toString() };
   const verified = c.trust.level === "verified";
+  const profile = await publicProfile(c.address);
   const method = c.trust.level === "verified" ? c.trust.livenessMethod : null;
 
   return (
@@ -35,7 +39,7 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
             <IconArrowLeft size={18} /> All creators
           </Link>
           <div className="flex flex-wrap items-center gap-5">
-            <Avatar seed={c.address} size={68} ring="#121316" />
+            <CreatorFace seed={c.address} photo={profile.photo} size={profile.photo ? 120 : 68} ring="#121316" label={profile.photo ? `Public photo of creator ${shortAddr(c.address)}` : undefined} />
             <h1 className="m-0 flex min-w-0 flex-wrap items-center gap-3 font-mono text-[clamp(24px,3.2vw,36px)] font-bold tracking-[-0.03em]">
               <span className="sr-only">Creator </span>
               {shortAddr(c.address)}
@@ -47,6 +51,11 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
             {categoryLabels(c.terms.categories).map((l) => (
               <span key={l} className="inline-flex items-center rounded-full border border-ink-line-2 px-3 py-1.5 text-[13px] font-medium text-white">
                 {l}
+              </span>
+            ))}
+            {[...profile.tags.tone, ...profile.tags.setting, ...(profile.tags.ageRange ? [profile.tags.ageRange] : [])].map((t) => (
+              <span key={t} className="inline-flex items-center rounded-full bg-ink-raised px-3 py-1.5 text-[13px] font-medium capitalize text-grey-dark">
+                {t}
               </span>
             ))}
           </div>
@@ -149,8 +158,12 @@ export default async function CreatorPage({ params }: PageProps<"/market/[addres
           </Tile>
         </div>
 
+        <SamplesGallery creator={c.address} count={profile.samples} />
+
         {c.canLicense ? (
-          <RequestLicence creator={c.address} terms={terms} />
+          <BrandGate creator={c.address}>
+            <RequestLicence creator={c.address} terms={terms} />
+          </BrandGate>
         ) : (
           <EmptyState title="Not accepting new licences">This creator is not accepting new licences right now. Existing licences keep their terms until they end.</EmptyState>
         )}

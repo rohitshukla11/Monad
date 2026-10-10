@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AvatarStack, CardRings, HeroHeadline, HeroLine, InlinePill, Panel, pillClass, Silhouette, silhouetteFor, TagChip } from "@/components/ds";
 import { IconArrowUpRight, IconBookmark, IconCamera, IconSearch, VerifiedMark } from "@/components/ds/icons";
 import { CATEGORIES } from "@/lib/categories";
+import { useBrandReady } from "@/components/brand/useBrandReady";
 
 export type MarketCreator = {
   address: string;
@@ -16,11 +17,17 @@ export type MarketCreator = {
   uses: string[]; // category labels
   autoApprove: boolean;
   registeredAt: number;
+  /** Public photo (512 px, watermarked). Only creators with one are listed. */
+  photo: string | null;
+  tags: string[];
 };
 
 const SAVED = "likeness:saved-creators";
 
 export function Marketplace({ creators, source }: { creators: MarketCreator[]; source: string }) {
+  // "Request licence" goes to brand onboarding first when this wallet has no completed brand profile.
+  const brandReady = useBrandReady();
+  const requestHref = (a: string) => (brandReady ? `/market/${a}#request` : `/brand/onboard?next=${encodeURIComponent(`/market/${a}#request`)}`);
   const [q, setQ] = useState("");
   const [use, setUse] = useState<string>("all");
   const [level, setLevel] = useState<"any" | "full">("any");
@@ -142,7 +149,7 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((c) => (
-            <CreatorCard key={c.address} c={c} saved={saved.includes(c.address)} onSave={() => toggleSave(c.address)} />
+            <CreatorCard key={c.address} c={c} saved={saved.includes(c.address)} onSave={() => toggleSave(c.address)} requestHref={requestHref(c.address)} />
           ))}
           {shown.length === 0 && creators.length > 0 && (
             <div className="flex flex-col items-start gap-3 rounded-[26px] border-2 border-dashed border-field bg-white/60 p-6 sm:col-span-2">
@@ -177,13 +184,18 @@ export function Marketplace({ creators, source }: { creators: MarketCreator[]; s
   );
 }
 
-function CreatorCard({ c, saved, onSave }: { c: MarketCreator; saved: boolean; onSave: () => void }) {
+function CreatorCard({ c, saved, onSave, requestHref }: { c: MarketCreator; saved: boolean; onSave: () => void; requestHref: string }) {
   const s = silhouetteFor(c.address);
   const name = `${c.address.slice(0, 6)}…${c.address.slice(-4)}`;
   return (
     <article className="flex flex-col gap-4 rounded-[26px] bg-white p-[18px]">
       <div className="relative flex aspect-square items-end justify-center overflow-hidden rounded-[18px]" style={{ background: s.tint }}>
-        <Silhouette fill={s.sil} />
+        {c.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={c.photo} alt={`Public photo of creator ${name}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <Silhouette fill={s.sil} />
+        )}
       </div>
       <div className="flex justify-between gap-2.5">
         <div className="flex min-w-0 flex-col gap-0.5">
@@ -206,6 +218,7 @@ function CreatorCard({ c, saved, onSave }: { c: MarketCreator; saved: boolean; o
         </span>
         <span className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ${c.autoApprove ? "bg-ok-bg text-ok" : "bg-wait-bg text-wait"}`}>{c.autoApprove ? "Instant" : "Asks first"}</span>
       </div>
+      {c.tags.length > 0 && <p className="m-0 text-[14px] capitalize text-grey">{c.tags.join(" · ")}</p>}
       <div className="flex items-baseline justify-between">
         <span className="text-[15px] text-grey">Price per render</span>
         <span className="tnum text-[18px] font-bold">{c.price}</span>
@@ -220,7 +233,7 @@ function CreatorCard({ c, saved, onSave }: { c: MarketCreator; saved: boolean; o
         >
           <IconBookmark size={20} filled={saved} />
         </button>
-        <Link href={`/market/${c.address}#request`} className="flex min-h-[52px] flex-1 items-center justify-center rounded-2xl bg-lime text-[16px] font-semibold text-ink no-underline hover:bg-lime-deep">
+        <Link href={requestHref} className="flex min-h-[52px] flex-1 items-center justify-center rounded-2xl bg-lime text-[16px] font-semibold text-ink no-underline hover:bg-lime-deep">
           Request licence
         </Link>
       </div>

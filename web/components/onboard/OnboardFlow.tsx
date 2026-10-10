@@ -38,7 +38,8 @@ import { deployment } from "@/lib/deployment";
 import { diditFailure } from "@/lib/didit-messages";
 import { formatDuration, usdc } from "@/lib/licensing";
 import { useDynamicState } from "@/app/providers";
-import { Details, pillClass } from "@/components/ds";
+import { CreatorFace, Details, pillClass } from "@/components/ds";
+import { PublicPhotoPicker } from "@/components/profile/PublicPhotoPicker";
 import { IconCheck, IconShield, VerifiedMark } from "@/components/ds/icons";
 import { KeysPanel } from "@/components/KeysPanel";
 import { STARTER_TERMS } from "@/components/TermsEditor";
@@ -98,6 +99,12 @@ export function OnboardFlow() {
   const [consented, setConsented] = useState<boolean | null>(null);
   const [didit, setDidit] = useState<Didit | null>(null);
   const [dripError, setDripError] = useState<string | null>(null);
+  const [photoStep, setPhotoStep] = useState<{ photos: Uint8Array[]; set: ReferenceSet; hash?: Hex } | null>(null);
+  const [publicPhoto, setPublicPhoto] = useState<string | null>(null);
+  useEffect(() => {
+    if (!photoStep || photoStep.hash) return;
+    void referenceSetHash(photoStep.set).then((hash) => setPhotoStep((p) => (p ? { ...p, hash: hash as Hex } : p)));
+  }, [photoStep]);
   const note = useCallback((f: Facts) => setFacts((x) => ({ ...x, ...f })), []);
 
   // Where this wallet is, from the chain and the server: so a refresh or a new tab resumes correctly.
@@ -157,7 +164,7 @@ export function OnboardFlow() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Progress step={step === "done" ? 4 : (step ?? (wallet ? 2 : 1))} />
+      <Progress step={step === "done" ? (photoStep ? 4 : 5) : (step ?? (wallet ? 2 : 1))} />
 
       <section aria-live="polite" className="rounded-[26px] bg-white p-6 sm:p-8">
         {step === null && (
@@ -177,13 +184,29 @@ export function OnboardFlow() {
           <ProtectStep
             wallet={wallet}
             note={note}
-            onRegistered={() => {
+            onRegistered={(photos, set) => {
               storage.set(DONE_KEY, wallet.address.toLowerCase());
+              setPhotoStep({ photos, set });
               setRegistered(true);
             }}
           />
         )}
-        {step === "done" && wallet && <Done wallet={wallet} liveness={facts.liveness} registeredAt={facts.registeredAt} />}
+        {step === "done" && wallet && photoStep && (
+          <PublicPhotoPicker
+            wallet={wallet}
+            referenceSetHash={photoStep.hash ?? ("0x" as Hex)}
+            initial={{ photos: photoStep.photos, set: photoStep.set }}
+            onDone={(url) => {
+              setPublicPhoto(url);
+              setPhotoStep(null);
+            }}
+            onSkip={() => {
+              photoStep.photos.forEach((p) => p.fill(0));
+              setPhotoStep(null);
+            }}
+          />
+        )}
+        {step === "done" && wallet && !photoStep && <Done wallet={wallet} liveness={facts.liveness} registeredAt={facts.registeredAt} photo={publicPhoto} />}
       </section>
 
       {dripError && wallet && (
@@ -237,9 +260,10 @@ export function OnboardFlow() {
 
 // ---------------------------------------------------------------- progress
 
-const STEPS = ["Sign in", "Verify it's you", "Protect your photos"];
+const STEPS = ["Sign in", "Verify it's you", "Protect your photos", "Public photo"];
 
-function Progress({ step }: { step: number }) {
+export function Progress({ step, steps = STEPS }: { step: number; steps?: readonly string[] }) {
+  const STEPS = steps;
   const pct = Math.min(100, ((step - 1) / STEPS.length) * 100 + (step > STEPS.length ? 0 : 100 / STEPS.length / 2));
   return (
     <div className="flex flex-col gap-3 rounded-[22px] bg-white px-5 py-4 sm:px-6">
@@ -268,7 +292,7 @@ function Progress({ step }: { step: number }) {
 
 // ---------------------------------------------------------------- 1. sign in
 
-function SignIn() {
+export function SignIn() {
   const user = useUser();
   const accounts = useGetWalletAccounts();
   const send = useSendEmailOTP();
@@ -521,7 +545,7 @@ function passkeyError(e: unknown): string {
   return reason(e);
 }
 
-function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; note: (f: Facts) => void; onRegistered: () => void }) {
+function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; note: (f: Facts) => void; onRegistered: (photos: Uint8Array[], set: ReferenceSet) => void }) {
   const [shots, setShots] = useState<(Uint8Array | null)[]>([null, null, null]);
   const [thumbs, setThumbs] = useState<(string | null)[]>([null, null, null]);
   const [states, setStates] = useState<PhotoState[]>(["empty", "empty", "empty"]);
@@ -533,6 +557,7 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
   const [error, setError] = useState<string | null>(null);
   // Kept once uploaded, so a retry after a failed attestation or registration skips Face ID.
   const sealed = useRef<ReferenceSet | null>(null);
+  const kept = useRef<Uint8Array[]>([]);
 
   useEffect(() => {
     try {
@@ -634,6 +659,8 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
         say("Saving encrypted copy…");
         await vaultPut(vaultId(key.credentialId, `reference-set:${await referenceSetHash(set)}`), set);
         sealed.current = set;
+        // Copies stay in this page's memory for "Choose your public photo", then are zeroed.
+        kept.current = shots.map((s) => s!.slice());
         shots.forEach((s) => s?.fill(0));
         setShots([null, null, null]);
       }
@@ -651,7 +678,7 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
       });
       const block = await pub.getBlock({ blockNumber: r.receipt.blockNumber }).catch(() => null);
       note({ registerTx: r.hash, registerMs: r.ms, registeredAt: block ? Number(block.timestamp) : Math.floor(Date.now() / 1000) });
-      onRegistered();
+      onRegistered(kept.current, sealed.current!);
     } catch (e) {
       const text = passkeyError(e);
       if (/no matched reference photos/.test(text)) {
@@ -723,14 +750,17 @@ function ProtectStep({ wallet, note, onRegistered }: { wallet: ActiveWallet; not
 
 // ---------------------------------------------------------------- done
 
-function Done({ wallet, liveness, registeredAt }: { wallet: ActiveWallet; liveness?: string; registeredAt?: number }) {
+function Done({ wallet, liveness, registeredAt, photo }: { wallet: ActiveWallet; liveness?: string; registeredAt?: number; photo?: string | null }) {
   const level = liveness === "active" ? "Full: active liveness" : liveness === "passive" ? "Free: passive liveness" : "Verified";
   return (
     <div className="flex flex-col gap-5">
       <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">You&apos;re a verified creator</h2>
       <article aria-label="Your creator credential" className="relative flex max-w-md flex-col gap-3 overflow-hidden rounded-[22px] bg-ink p-6 text-white">
-        <span className="flex items-center gap-2 text-[13px] font-semibold text-lime">
-          <VerifiedMark size={18} /> Likeness creator credential
+        <span className="flex items-center gap-3 text-[13px] font-semibold text-lime">
+          <CreatorFace seed={wallet.address} photo={photo} size={48} />
+          <span className="flex items-center gap-2">
+            <VerifiedMark size={18} /> Likeness creator credential
+          </span>
         </span>
         <dl className="m-0 grid grid-cols-[8rem_1fr] gap-y-2 text-[15px]">
           <dt className="text-grey-dark">Name</dt>

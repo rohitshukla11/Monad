@@ -9,12 +9,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { pillClass, Silhouette, silhouetteFor } from "@/components/ds";
+import { CreatorFace, pillClass, Silhouette, silhouetteFor } from "@/components/ds";
 import { IconArrowLeft, IconArrowRight, IconArrowUpRight, IconChevron } from "@/components/ds/icons";
 import { useCountUp, useInView } from "@/components/ds/motion";
 import { BUILT_ON, MEASUREMENTS, TESTIMONIALS } from "@/lib/site-content";
 
-export type LandingCreator = { address: string; price: string; meta: string };
+export type LandingCreator = { address: string; price: string; meta: string; photo: string };
 
 const RIBBON_A = ["Advertising", "✳", "Social", "✳", "Editorial", "✳", "Entertainment", "✳", "Product", "✳"];
 const RIBBON_B = ["Approve", "✳", "Get paid per render", "✳", "Revoke any time", "✳", "Verified humans", "✳"];
@@ -25,7 +25,7 @@ export function Landing({ creators }: { creators: LandingCreator[] }) {
       <Hero />
       <Stats />
       <HowItWorks />
-      <Creators creators={creators} />
+      {creators.length > 0 && <Creators creators={creators} />}
       <Quotes />
     </main>
   );
@@ -80,6 +80,9 @@ function Hero() {
         <div className="ml-auto flex items-center gap-4">
           <Link href="/dashboard" className="hidden py-3 text-[14px] font-medium text-ink no-underline hover:underline sm:inline">
             Log in
+          </Link>
+          <Link href="/brand/onboard" className={pillClass("outline-dark", "hidden px-5 text-[14px] sm:inline-flex")}>
+            License a face
           </Link>
           <Link href="/onboard" className={pillClass("ink", "px-5 text-[14px]")}>
             Become a creator
@@ -291,12 +294,6 @@ function HowItWorks() {
 // ---------------------------------------------------------------- creators
 
 const FRAMES = ["#F6C9DD", "#BFE3C9", "#C9B8FA", "#DCF37B"];
-/** Example photos for empty creator slots, each in a gradient frame. */
-const EXAMPLES = [
-  { photo: "/landing/portrait-pink.png", frame: "/landing/card-violet.png" },
-  { photo: "/landing/portrait-glasses.png", frame: "/landing/card-ribbons.png" },
-  { photo: "/landing/portrait-curly.png", frame: "/landing/card-sky.png" },
-];
 const TILTS = ["-7deg", "-3deg", "6deg"];
 /** Grid placement at sm and up: first card tall on the left, heading top right, the others below it. */
 const PLACE = ["sm:col-start-1 sm:row-span-2 sm:row-start-1", "sm:col-start-2 sm:row-start-2 sm:-ml-6 sm:mt-6", "sm:col-start-3 sm:row-start-2 sm:-mt-4"];
@@ -304,10 +301,10 @@ const PLACE = ["sm:col-start-1 sm:row-span-2 sm:row-start-1", "sm:col-start-2 sm
 function Creators({ creators }: { creators: LandingCreator[] }) {
   const [shift, setShift] = useState(0);
   const { ref, seen } = useInView<HTMLDivElement>();
-  // Real creators only; any free slots become an invitation, never a sample person.
-  const slots: (LandingCreator | null)[] = creators.length >= 3 ? creators : [...creators, ...Array<null>(3 - creators.length).fill(null)];
-  const shown = [0, 1, 2].map((i) => slots[(i + shift) % slots.length]);
-  const canRotate = creators.length > 1;
+  // Real, listed creators with a public photo only; the section is hidden when there are none.
+  const slots = creators;
+  const shown = [0, 1, 2].slice(0, Math.min(3, slots.length)).map((i) => slots[(i + shift) % slots.length]);
+  const canRotate = creators.length > 3;
   return (
     <section className="relative overflow-hidden bg-sky">
       <svg aria-hidden="true" viewBox="0 0 1440 800" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
@@ -351,25 +348,6 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
           const transform = seen ? `rotate(${TILTS[i]})` : "translateX(160px) rotate(8deg)";
           const style = { transform, transitionDelay: `${0.1 + i * 0.18}s`, background: FRAMES[(i + shift) % FRAMES.length] };
           const cls = `card-in${seen ? " in" : ""} relative block self-start rounded-[28px] p-3 text-ink no-underline shadow-[0_18px_40px_rgba(18,19,22,0.12)] ${PLACE[i]}`;
-          if (!cr) {
-            // A free slot: an example photo, labelled as one, inviting a real creator. Never a sample listing.
-            const ex = EXAMPLES[i % EXAMPLES.length];
-            return (
-              <Link key={`example-${i}`} href="/onboard" className={cls} style={{ ...style, backgroundImage: `url(${ex.frame})`, backgroundSize: "cover" }}>
-                <span className="absolute left-5 top-5 z-10 rounded-full bg-white px-3 py-1.5 font-display text-[11px] font-bold">EXAMPLE</span>
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[20px]">
-                  <Image src={ex.photo} alt="" fill sizes="(min-width: 640px) 340px, 90vw" className="scale-[1.04] object-cover object-top" />
-                </div>
-                <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white px-3 py-2.5">
-                  <span className="flex min-w-0 flex-col">
-                    <span className="font-display text-[14px] font-bold">YOUR FACE HERE</span>
-                    <span className="text-[12px] text-grey">Verify once, get paid per render</span>
-                  </span>
-                  <span className={pillClass("ink", "min-h-9 px-3 text-[12px]")}>Become a creator</span>
-                </div>
-              </Link>
-            );
-          }
           const s = silhouetteFor(cr.address);
           return (
             <Link key={cr.address + i} href={`/market/${cr.address}`} className={cls} style={style}>
@@ -377,13 +355,12 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
               <span aria-hidden="true" className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/70">
                 <IconArrowUpRight size={16} />
               </span>
-              <div className="flex aspect-[4/5] items-end justify-center overflow-hidden rounded-[20px]" style={{ background: s.tint }}>
-                <Silhouette fill={s.sil} width="82%" height="92%" />
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[20px]" style={{ background: s.tint }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={cr.photo} alt={`Creator ${cr.address.slice(0, 6)}…${cr.address.slice(-4)}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               </div>
               <div className="absolute bottom-6 left-6 right-6 flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2.5">
-                <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-end justify-center overflow-hidden rounded-full" style={{ background: s.tint }}>
-                  <Silhouette fill={s.sil} width={28} height={32} />
-                </span>
+                <CreatorFace seed={cr.address} photo={cr.photo} size={32} />
                 <span className="flex min-w-0 flex-col">
                   <span className="tnum font-display text-[14px] font-bold">
                     {cr.address.slice(0, 6)}…{cr.address.slice(-4)}
@@ -394,9 +371,7 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
             </Link>
           );
         })}
-        {shown.some((c) => !c) && (
-          <p className="m-0 text-[13px] text-[#3E4148] sm:col-span-3">Cards marked Example use illustrative photos, not registered creators. Every creator listed here is a verified human.</p>
-        )}
+
       </div>
     </section>
   );
@@ -463,6 +438,9 @@ function Quotes() {
                   </span>
                 ))}
               </span>
+              <Link href="/brand/onboard" className={pillClass("outline-dark", "px-6 text-[14px]")}>
+                License a face
+              </Link>
               <Link href="/onboard" className={pillClass("ink", "px-6 text-[14px]")}>
                 Get started
               </Link>

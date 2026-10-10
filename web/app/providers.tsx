@@ -48,6 +48,11 @@ function getClient(): DynamicClient | undefined {
   return client;
 }
 
+/** Dynamic's signed session token (JWT) for the signed-in user, if any: proves the sign-in email to our server. */
+export function dynamicSessionToken(): string | null {
+  return client?.token ?? null;
+}
+
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   // Created after mount: the client needs `window`, and the server render must match the first

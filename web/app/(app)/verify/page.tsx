@@ -8,13 +8,14 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { Avatar, CardRings, HeroHeadline, HeroLine, Initial, InlinePill, Panel, pillClass, StatusPill, TagChip } from "@/components/ds";
+import { useBrandCards, useProfiles } from "@/lib/client/profiles";
+import { BrandChip, CreatorFace, CardRings, HeroHeadline, HeroLine, Initial, InlinePill, Panel, pillClass, StatusPill, TagChip } from "@/components/ds";
 import { IconCheck, IconCross, IconQuestion, IconUpload } from "@/components/ds/icons";
 import { fmtDate, fmtDay, Tx, inputClass } from "@/components/ui";
 import type { Trust } from "@/lib/licensing";
 
 type V = {
-  verdict: "Licensed" | "Expired" | "Revoked" | "Unknown";
+  verdict: "Licensed" | "Expired" | "Revoked" | "Unknown" | "ProfilePhoto" | "Sample";
   headline: string;
   assetHash: string;
   receipt: { licenceId: string; renderIndex: number; renderedAt: number; tx?: string } | null;
@@ -32,6 +33,7 @@ type V = {
   licence: { id: string; status: string; use: string; regions: string; start: number; end: number; renders: string; price: string; creator: string; licensee: string } | null;
   creator: { address: string; trust: Trust; verifiedAt: number; upgradedAt?: number } | null;
   revoked: { at: number; tx: string; how: string } | null;
+  preview?: { kind: "profile-photo" | "sample-render"; status: "pending" | "live" | "removed"; publishedAt: number; removedAt?: number } | null;
   notes: string[];
 };
 
@@ -40,6 +42,8 @@ const LOOK = {
   Revoked: { tone: "coral", bg: "bg-coral", stroke: "#F7A4A1", stamp: "Since revoked", icon: IconCross },
   Expired: { tone: "grey", bg: "bg-[#D9DCE2]", stroke: "#D9DCE2", stamp: "Expired", icon: IconQuestion },
   Unknown: { tone: "grey", bg: "bg-[#D9DCE2]", stroke: "#D9DCE2", stamp: "Unknown", icon: IconQuestion },
+  ProfilePhoto: { tone: "lavender", bg: "bg-lavender", stroke: "#ECE6FD", stamp: "Profile photo", icon: IconQuestion },
+  Sample: { tone: "lavender", bg: "bg-lavender", stroke: "#ECE6FD", stamp: "Sample render", icon: IconQuestion },
 } as const;
 
 export default function VerifyPage() {
@@ -96,6 +100,8 @@ function Verify() {
   }
 
   const look = result ? LOOK[result.verdict] : null;
+  const faces = useProfiles(result?.creator ? [result.creator.address] : []);
+  const brands = useBrandCards(result?.licence ? [result.licence.licensee] : []);
   const Icon = look?.icon ?? IconUpload;
   const m = result?.manifest && result.manifest.present ? result.manifest : null;
   const l = result?.licence;
@@ -206,7 +212,7 @@ function Verify() {
               {result.creator ? (
                 <>
                   <Link href={`/market/${result.creator.address}`} className="flex items-center gap-3 text-ink no-underline">
-                    <Avatar seed={result.creator.address} />
+                    <CreatorFace seed={result.creator.address} photo={faces[result.creator.address.toLowerCase()]?.photo} />
                     <span className="tnum text-[17px] font-semibold">
                       {result.creator.address.slice(0, 6)}…{result.creator.address.slice(-4)}
                     </span>
@@ -222,9 +228,8 @@ function Verify() {
               <span className="text-[15px] text-grey">Licensee</span>
               {l ? (
                 <>
-                  <span className="flex items-center gap-3">
-                    <Initial name={brand ?? l.licensee.slice(2)} />
-                    <span className="truncate text-[17px] font-semibold">{brand ?? `${l.licensee.slice(0, 6)}…${l.licensee.slice(-4)}`}</span>
+                  <span className="text-[16px]">
+                    <BrandChip brand={brands[l.licensee.toLowerCase()]} fallback={brand ?? `${l.licensee.slice(0, 6)}…${l.licensee.slice(-4)}`} />
                   </span>
                   <span className="self-start">
                     <TagChip>{l.use}</TagChip>
@@ -340,6 +345,10 @@ function subline(v: V): string {
       return "Licensed when it was made. The creator revoked the licence afterwards, so it should not be used in new placements.";
     case "Expired":
       return "Licensed when it was made. The licence period has ended.";
+    case "ProfilePhoto":
+      return `Profile photo of a Likeness creator: a preview, not a licensed asset.${v.preview?.status === "removed" ? " The creator has since taken it down." : ""}`;
+    case "Sample":
+      return `Sample render: not a licence to use this face.${v.preview?.status === "removed" ? " The creator has since taken it down." : ""}`;
     default:
       return v.headline;
   }

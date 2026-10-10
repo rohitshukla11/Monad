@@ -10,7 +10,8 @@ import { api, browserPub, reason, write } from "@/lib/client/tx";
 import { categoryLabels } from "@/lib/categories";
 import { deployment } from "@/lib/deployment";
 import { usdc, type Licence } from "@/lib/licensing";
-import { Avatar, HeroHeadline, HeroLine, InlinePill, LimeCard, Panel, pillClass, SectionTitle, StatCard, StatusPill } from "@/components/ds";
+import { useProfiles } from "@/lib/client/profiles";
+import { CreatorFace, HeroHeadline, HeroLine, InlinePill, LimeCard, Panel, pillClass, SectionTitle, StatCard, StatusPill } from "@/components/ds";
 import { IconArrowRight, IconSearch } from "@/components/ds/icons";
 import { fmtDay, Note, STATUS_LABEL, Tx, inputClass } from "@/components/ui";
 import type { ActiveWallet } from "@/components/wallet/WalletProvider";
@@ -26,6 +27,7 @@ const pad = (id: string) => `#${id.padStart(4, "0")}`;
 
 export function BrandView({ wallet }: { wallet: ActiveWallet }) {
   const [rows, setRows] = useState<Row[]>([]);
+  const faces = useProfiles(rows.map((r) => r.creator));
   const [briefs, setBriefs] = useState<Record<string, Brief | null>>({});
   const [balance, setBalance] = useState<bigint | null>(null);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
@@ -151,7 +153,7 @@ export function BrandView({ wallet }: { wallet: ActiveWallet }) {
               <article key={l.id} className="flex flex-col gap-4 rounded-[26px] bg-white p-6">
                 <div className="flex items-center justify-between gap-2.5">
                   <Link href={`/market/${l.creator}`} className="flex min-w-0 items-center gap-3 text-ink no-underline">
-                    <Avatar seed={l.creator} />
+                    <CreatorFace seed={l.creator} photo={faces[l.creator.toLowerCase()]?.photo} />
                     <span className="flex min-w-0 flex-col">
                       <span className="tnum truncate text-[17px] font-semibold">
                         {l.creator.slice(0, 6)}…{l.creator.slice(-4)}

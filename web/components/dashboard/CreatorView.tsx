@@ -12,7 +12,9 @@ import { deployment } from "@/lib/deployment";
 import { approvalTypedData, declineMessage, formatDuration, usdc, type Licence, type Terms, type Trust } from "@/lib/licensing";
 import { toRequest } from "@/components/market/RequestLicence";
 import { TermsEditor } from "@/components/TermsEditor";
-import { CardRings, HeroHeadline, HeroLine, Initial, InlinePill, LimeCard, Panel, pillClass, SectionTitle, StatCard, StatusPill } from "@/components/ds";
+import { BrandChip, CardRings, HeroHeadline, HeroLine, Initial, InlinePill, LimeCard, Panel, pillClass, SectionTitle, StatCard, StatusPill } from "@/components/ds";
+import { useBrandCards } from "@/lib/client/profiles";
+import { ProfileCard } from "@/components/profile/ProfileCard";
 import { IconArrowRight, IconShield } from "@/components/ds/icons";
 import { fmtDay, Note, STATUS_LABEL, Tx } from "@/components/ui";
 import type { ActiveWallet } from "@/components/wallet/WalletProvider";
@@ -89,7 +91,9 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
   const verified = creator.trust.level === "verified";
   const passive = creator.trust.level === "verified" && creator.trust.livenessMethod === "passive";
   const oldest = requests[0];
-  const brandOf = (id: string, licensee: string) => details[id]?.brief?.brand || `Brand ${licensee.slice(0, 6)}…`;
+  // A licensee's brand profile (name, logo, badge) wins over the free-text brand in the brief.
+  const cards = useBrandCards([...requests.map((r) => r.licensee), ...licences.map((l) => l.licensee)]);
+  const brandOf = (id: string, licensee: string) => cards[licensee.toLowerCase()]?.name || details[id]?.brief?.brand || `Brand ${licensee.slice(0, 6)}…`;
 
   async function approve(r: Req) {
     const req = toRequest(r.request);
@@ -122,7 +126,10 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
             <span className="self-start rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-lime">
               Waiting for you{requests.length > 1 ? ` · ${requests.length} requests` : ""}
             </span>
-            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">{oldest.brief.brand} wants to license you</h2>
+            <h2 className="m-0 text-[clamp(22px,2.4vw,28px)] font-bold leading-[1.1] tracking-[-0.02em]">{cards[oldest.licensee.toLowerCase()]?.name ?? oldest.brief.brand} wants to license you</h2>
+            <span className="rounded-[14px] bg-white/70 px-3 py-2 text-[14px]">
+              <BrandChip brand={cards[oldest.licensee.toLowerCase()]} fallback={oldest.brief.brand} />
+            </span>
             <p className="m-0 text-[15px] leading-relaxed">
               {categoryLabels(Number(oldest.request.category)).join()} · {oldest.request.renderCap} renders · {formatDuration(BigInt(oldest.request.duration))} · {money(BigInt(oldest.request.pricePerRender))} per render
               <br />“{oldest.brief.campaign}”
@@ -189,6 +196,8 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
           </div>
         )}
 
+        <ProfileCard wallet={wallet} referenceSetHash={creator.referenceSetHash as Hex} />
+
         <SectionTitle
           action={
             <button
@@ -222,10 +231,16 @@ export function CreatorView({ wallet, creator, onChanged }: { wallet: ActiveWall
               <article key={l.id} className="flex flex-col gap-4 rounded-[26px] bg-white p-6">
                 <div className="flex items-center justify-between gap-2.5">
                   <div className="flex min-w-0 items-center gap-3">
-                    <Initial name={brand} dark={isActive} />
+                    {cards[l.licensee.toLowerCase()]?.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cards[l.licensee.toLowerCase()]!.logo!} alt="" width={52} height={52} className="h-[52px] w-[52px] shrink-0 rounded-full border border-field bg-white object-contain" />
+                    ) : (
+                      <Initial name={brand} dark={isActive} />
+                    )}
                     <div className="flex min-w-0 flex-col">
                       <h3 className={`m-0 truncate text-[17px] font-semibold ${isActive ? "" : "text-grey"}`}>{brand}</h3>
                       <span className="text-[14px] text-grey">Licence {pad(l.id)}</span>
+                      <BadgeLine badge={cards[l.licensee.toLowerCase()]?.badge} />
                     </div>
                   </div>
                   <StatusPill kind={isActive ? "licensed" : l.status === "Revoked" ? "revoked" : "neutral"}>{STATUS_LABEL[l.status]}</StatusPill>
@@ -372,4 +387,9 @@ function CopyLink({ path }: { path: string }) {
       <span aria-live="polite">{done ? "Copied" : "Copy link"}</span>
     </button>
   );
+}
+
+function BadgeLine({ badge }: { badge?: "verified-domain" | "unverified" }) {
+  if (!badge) return <span className="text-[13px] text-grey">No brand profile</span>;
+  return <span className={`text-[13px] font-semibold ${badge === "verified-domain" ? "text-ok" : "text-wait"}`}>{badge === "verified-domain" ? "Verified domain" : "Unverified brand"}</span>;
 }

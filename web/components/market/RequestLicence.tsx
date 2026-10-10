@@ -14,6 +14,7 @@ import { CATEGORIES, REGIONS } from "@/lib/categories";
 import { deployment } from "@/lib/deployment";
 import { fitsTerms, usdc, type LicenceRequest, type Terms } from "@/lib/licensing";
 import { useWallet } from "@/components/wallet/WalletProvider";
+import { brandStatus } from "@/lib/client/brand-session";
 import { Badge, Button, Field, Note, Tx, inputClass } from "@/components/ui";
 
 type TermsJson = Omit<Terms, "maxDuration" | "pricePerRender"> & { maxDuration: string; pricePerRender: string };
@@ -53,6 +54,14 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<React.ReactNode>(null);
   const [mine, setMine] = useState<Stored[]>([]);
+
+  // The brand name comes from the brand profile; the creator sees it, with logo and badge, when asked to approve.
+  useEffect(() => {
+    if (!wallet) return;
+    brandStatus(wallet.address)
+      .then((b) => b.name && setBrief((x) => (x.brand ? x : { ...x, brand: b.name! })))
+      .catch(() => {});
+  }, [wallet]);
 
   const refresh = useCallback(async () => {
     if (!wallet) return;
