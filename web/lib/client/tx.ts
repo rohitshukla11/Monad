@@ -30,6 +30,9 @@ export function reason(e: unknown): string {
   const err = e as { shortMessage?: string; message?: string; cause?: { data?: { errorName?: string } } };
   const text = `${err.shortMessage ?? ""} ${err.message ?? ""}`;
   if (/limited to \d+\/sec|429|rate limit/i.test(text)) return "The Monad testnet RPC is busy (rate limited). Wait a moment and try again.";
+  // Dynamic's wallet service refused to sign for this browser session (e.g. stale state after a sign-out).
+  if (/WalletApiError: Forbidden|Error signing message[\s\S]*Forbidden/i.test(text))
+    return "Your wallet couldn't sign in this browser session. Sign out, reload the page and sign in again; if it repeats, clear this site's data in the browser and sign in once more.";
   const name = err.cause?.data?.errorName;
   return name ? `${name}${err.shortMessage ? ` (${err.shortMessage})` : ""}` : (err.shortMessage ?? err.message ?? String(e));
 }
