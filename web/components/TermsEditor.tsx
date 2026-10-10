@@ -58,7 +58,7 @@ export function TermsEditor({
 
   return (
     <div className="space-y-6">
-      <Field label="Allowed uses">
+      <Field label="Allowed uses" group>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <Chip key={c.key} on={!!(t.categories & c.bit)} onClick={() => toggle("categories", c.bit)}>
@@ -66,13 +66,13 @@ export function TermsEditor({
             </Chip>
           ))}
           {BANNED.map((c) => (
-            <span key={c.key} title="Banned on chain for every licence" className="rounded-full border border-line-soft px-3 py-1 text-xs text-dim line-through">
+            <span key={c.key} title="Banned on chain for every licence" className="inline-flex min-h-11 items-center rounded-full border border-divider px-4 text-[13px] text-grey line-through">
               {c.label}
             </span>
           ))}
         </div>
       </Field>
-      <Field label="Regions">
+      <Field label="Regions" group>
         <div className="flex flex-wrap gap-2">
           {REGIONS.map((r) => (
             <Chip key={r.key} on={!!(t.regions & r.bit)} onClick={() => toggle("regions", r.bit)}>
@@ -81,7 +81,7 @@ export function TermsEditor({
           ))}
         </div>
       </Field>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Field label="Price per render (USDC)">
           <input className={inputClass} value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
         </Field>
@@ -99,16 +99,16 @@ export function TermsEditor({
           <input className={inputClass} type="number" min={1} value={t.maxRenders} onChange={(e) => setT({ ...t, maxRenders: Math.max(0, Math.floor(Number(e.target.value))) })} />
         </Field>
       </div>
-      <label className="flex items-center gap-3">
-        <input type="checkbox" checked={t.autoApprove} onChange={(e) => setT({ ...t, autoApprove: e.target.checked })} />
+      <label className="flex min-h-11 items-center gap-3">
+        <input type="checkbox" className="h-5 w-5 accent-[#121316]" checked={t.autoApprove} onChange={(e) => setT({ ...t, autoApprove: e.target.checked })} />
         <span>Approve requests inside these terms automatically</span>
       </label>
-      <p className="text-xs text-dim">Requests outside these terms always come to you to sign. You can revoke any licence in one click.</p>
-      <div className="flex items-center gap-4">
-        <Button onClick={submit} disabled={busy}>
+      <p className="m-0 text-[13px] text-grey">Requests outside these terms always come to you to sign. You can revoke any licence in one click.</p>
+      <div className="flex flex-wrap items-center gap-4">
+        <Button kind="ink" onClick={submit} disabled={busy}>
           {submitLabel}
         </Button>
-        {error && <span className="text-sm text-down">{error}</span>}
+        {error && <span role="alert" className="text-[15px] text-bad">{error}</span>}
       </div>
     </div>
   );
@@ -120,7 +120,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className={`rounded-full border px-3 py-1 text-xs font-semibold ${on ? "border-up/60 bg-up/10 text-up" : "border-line text-muted"}`}
+      className={`inline-flex min-h-11 items-center rounded-full border px-4 text-[14px] font-semibold ${on ? "border-ink bg-ink text-lime" : "border-field bg-white text-ink hover:border-grey"}`}
     >
       {children}
     </button>

@@ -14,7 +14,7 @@ import { CATEGORIES, REGIONS } from "@/lib/categories";
 import { deployment } from "@/lib/deployment";
 import { fitsTerms, usdc, type LicenceRequest, type Terms } from "@/lib/licensing";
 import { useWallet } from "@/components/wallet/WalletProvider";
-import { Badge, Button, Card, Field, H2, Note, Tx, inputClass } from "@/components/ui";
+import { Badge, Button, Field, Note, Tx, inputClass } from "@/components/ui";
 
 type TermsJson = Omit<Terms, "maxDuration" | "pricePerRender"> & { maxDuration: string; pricePerRender: string };
 type Stored = { id: string; state: string; request: Record<string, string | number>; brief: { campaign: string }; signature?: Hex };
@@ -76,7 +76,7 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
     const id = issuedId(receipt.logs);
     setMsg(
       <span>
-        Licence #{id?.toString()} issued: <Tx hash={hash} ms={ms} />. Fund its escrow from your <Link className="text-blue" href="/dashboard">dashboard</Link>.
+        Licence #{id?.toString()} issued: <Tx hash={hash} ms={ms} />. Fund its escrow from your <Link className="font-semibold text-wait underline" href="/dashboard">dashboard</Link>.
       </span>,
     );
   }
@@ -107,17 +107,17 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
         await refresh();
       }
     } catch (e) {
-      setMsg(<span className="text-down">{reason(e)}</span>);
+      setMsg(<span className="text-bad">{reason(e)}</span>);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Card className="space-y-6">
-      <H2>Request a licence</H2>
+    <section id="request" aria-labelledby="request-title" className="flex scroll-mt-6 flex-col gap-6 rounded-[26px] bg-white p-6 sm:p-8">
+      <h2 id="request-title" className="m-0 text-[clamp(24px,3vw,30px)] font-bold tracking-[-0.02em]">Request a licence</h2>
       {!wallet && <Note>Sign in (or pick a DEV wallet in the header) to request a licence.</Note>}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Use">
           <select className={inputClass} value={category} onChange={(e) => setCategory(Number(e.target.value))}>
             {allowed.map((c) => (
@@ -127,14 +127,15 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
             ))}
           </select>
         </Field>
-        <Field label="Regions">
+        <Field label="Regions" group>
           <div className="flex flex-wrap gap-2">
             {REGIONS.map((r) => (
               <button
                 key={r.key}
                 type="button"
                 onClick={() => setRegions(regions ^ r.bit)}
-                className={`rounded-full border px-3 py-1 text-xs ${regions & r.bit ? "border-up/60 text-up" : "border-line text-dim"}`}
+                aria-pressed={!!(regions & r.bit)}
+                className={`inline-flex min-h-11 items-center rounded-full border px-4 text-[14px] font-semibold ${regions & r.bit ? "border-ink bg-ink text-lime" : "border-field bg-white text-ink hover:border-grey"}`}
               >
                 {r.label}
               </button>
@@ -160,25 +161,25 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
           <input className={inputClass} value={brief.use} onChange={(e) => setBrief({ ...brief, use: e.target.value })} />
         </Field>
       </div>
-      <div className="flex items-center gap-4">
-        <Button onClick={submit} disabled={!wallet || busy || !regions || parsedPrice <= 0n}>
+      <div className="flex flex-wrap items-center gap-4">
+        <Button kind="ink" onClick={submit} disabled={!wallet || busy || !regions || parsedPrice <= 0n}>
           {outside ? "Send to creator for approval" : "Get licence now (inside the creator's terms)"}
         </Button>
         {outside ? <Badge tone="warn">Needs the creator's signature: {outside}</Badge> : <Badge tone="up">Auto-approved on chain</Badge>}
       </div>
-      {msg && <div className="text-sm text-muted">{msg}</div>}
+      {msg && <div role="status" className="text-[15px] text-grey">{msg}</div>}
       {mine.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-xs uppercase tracking-wider text-dim">Your requests to this creator</h3>
+          <h3 className="m-0 text-[17px] font-semibold">Your requests to this creator</h3>
           {mine.map((r) => (
-            <div key={r.id} className="flex items-center justify-between rounded-card border border-line-soft px-4 py-2">
+            <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-divider px-4 py-3">
               <span>
                 {r.brief.campaign} · {r.request.renderCap} renders · {usdc.format(BigInt(r.request.pricePerRender))} USDC
               </span>
-              <span className="flex items-center gap-3">
+              <span className="flex flex-wrap items-center gap-3">
                 <Badge tone={r.state === "approved" ? "up" : r.state === "declined" ? "down" : "warn"}>{r.state}</Badge>
                 {r.state === "approved" && r.signature && (
-                  <Button kind="secondary" disabled={busy} onClick={() => issue(toRequest(r.request), r.signature!).catch((e) => setMsg(<span className="text-down">{reason(e)}</span>))}>
+                  <Button kind="secondary" disabled={busy} onClick={() => issue(toRequest(r.request), r.signature!).catch((e) => setMsg(<span className="text-bad">{reason(e)}</span>))}>
                     Issue licence on chain
                   </Button>
                 )}
@@ -187,6 +188,6 @@ export function RequestLicence({ creator, terms: tj }: { creator: Address; terms
           ))}
         </div>
       )}
-    </Card>
+    </section>
   );
 }
