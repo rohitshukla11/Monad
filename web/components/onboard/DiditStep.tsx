@@ -57,9 +57,9 @@ export function DiditStep({ address, onDone }: { address: string; onDone: () => 
 
   const s = status?.state ?? "none";
   return (
-    <div className="space-y-3">
-      <h3 className="font-display text-lg">Verify with Didit</h3>
-      <p className="text-muted">
+    <div className="flex flex-col items-start gap-4">
+      <h2 className="m-0 text-[28px] font-bold tracking-[-0.02em]">Verify with Didit</h2>
+      <p className="m-0 max-w-3xl text-[16px] text-grey">
         Didit checks your ID document (we only learn whether you are 18 or over), runs a liveness check, and matches your face to the
         document photo. It opens in a new tab.{" "}
         {status?.level === "full" ? "On a computer it shows a QR code to finish on your phone." : "You can finish on this computer's camera or on your phone."}
@@ -74,7 +74,7 @@ export function DiditStep({ address, onDone }: { address: string; onDone: () => 
         <div className="space-y-2">
           <Note tone="dim">Waiting for Didit’s decision ({status?.sessionStatus}). This page checks with Didit every few seconds.</Note>
           {url ? (
-            <a className="text-sm text-blue" href={url} target="_blank" rel="noreferrer">
+            <a className="inline-flex min-h-11 items-center text-[15px] font-semibold text-wait underline" href={url} target="_blank" rel="noreferrer">
               Reopen the Didit verification
             </a>
           ) : (

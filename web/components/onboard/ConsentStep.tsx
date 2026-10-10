@@ -42,25 +42,25 @@ export function ConsentStep({ wallet, onDone, always = false }: { wallet: Active
 
   return (
     <div className="space-y-4">
-      <h3 className="font-display text-lg">Before we verify you</h3>
-      <ol className="list-decimal space-y-2 pl-5 text-muted">
+      <h3 className="m-0 text-[22px] font-bold">Before we verify you</h3>
+      <ol className="m-0 list-decimal space-y-2 pl-5 text-[15px] text-[#3E4148]">
         {CONSENT_POINTS.map((p) => (
           <li key={p}>{p}</li>
         ))}
       </ol>
-      <p className="text-xs text-dim">
+      <p className="m-0 text-[14px] text-grey">
         Didit&apos;s{" "}
-        <a className="text-blue" href={DIDIT_LINKS.privacy} target="_blank" rel="noreferrer">
+        <a className="text-wait underline" href={DIDIT_LINKS.privacy} target="_blank" rel="noreferrer">
           verification privacy notice
         </a>{" "}
         and{" "}
-        <a className="text-blue" href={DIDIT_LINKS.terms} target="_blank" rel="noreferrer">
+        <a className="text-wait underline" href={DIDIT_LINKS.terms} target="_blank" rel="noreferrer">
           identity verification terms
         </a>
         . Consent version {CONSENT_VERSION}.
       </p>
-      <label className="flex items-start gap-3">
-        <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1" />
+      <label className="flex min-h-11 items-start gap-3">
+        <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1 h-5 w-5 accent-[#121316]" />
         <span>I agree, including to Didit processing my identity document and my face (biometric data) for this verification.</span>
       </label>
       <Button disabled={!checked || busy} onClick={sign}>

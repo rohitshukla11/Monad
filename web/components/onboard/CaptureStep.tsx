@@ -6,6 +6,8 @@
  * before anything is stored.
  */
 import { useEffect, useRef, useState } from "react";
+import { pillClass } from "@/components/ds";
+import { IconCamera } from "@/components/ds/icons";
 
 const POSES = ["Look straight at the camera", "Turn slightly to your left", "Turn slightly to your right"];
 
@@ -42,23 +44,24 @@ export function CaptureStep({ onDone }: { onDone: (captures: Uint8Array[]) => vo
     if (next.length === POSES.length) onDone(next);
   }
 
-  if (error) return <p className="text-sm text-down">Camera unavailable: {error}</p>;
+  if (error) return <p role="alert" className="m-0 text-[15px] text-bad">Camera unavailable: {error}</p>;
   return (
-    <div className="flex gap-8">
-      <video ref={video} autoPlay playsInline muted className="w-[480px] -scale-x-100 rounded-card bg-surface" />
-      <div className="space-y-4">
-        <p className="text-sm text-muted">
+    <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
+      <video ref={video} autoPlay playsInline muted aria-label="Camera preview" className="aspect-video w-full max-w-[480px] -scale-x-100 rounded-[26px] bg-ink object-cover" />
+      <div className="flex flex-col gap-4">
+        <p role="status" className="m-0 text-[15px] text-grey">
           Photo {Math.min(shots.length + 1, POSES.length)} of {POSES.length}
         </p>
-        <p className="font-display text-lg">{POSES[Math.min(shots.length, POSES.length - 1)]}</p>
-        <button
-          onClick={take}
-          disabled={shots.length >= POSES.length}
-          className="rounded-full bg-text px-5 py-2.5 text-sm font-semibold text-ground disabled:opacity-50"
-        >
-          Take photo
+        <ol aria-label="Poses" className="m-0 flex list-none gap-2 p-0">
+          {POSES.map((p, i) => (
+            <li key={p} aria-label={`${p}${i < shots.length ? " (taken)" : ""}`} className={`h-2.5 w-10 rounded-full ${i < shots.length ? "bg-ok" : i === shots.length ? "bg-ink" : "bg-field"}`} />
+          ))}
+        </ol>
+        <p className="m-0 text-[22px] font-semibold">{POSES[Math.min(shots.length, POSES.length - 1)]}</p>
+        <button type="button" onClick={take} disabled={shots.length >= POSES.length} className={pillClass("ink", "self-start min-h-[54px] px-7")}>
+          <IconCamera size={18} /> Take photo
         </button>
-        <p className="max-w-xs text-xs text-dim">Photos stay in this browser's memory until they are encrypted.</p>
+        <p className="m-0 max-w-xs text-[13px] text-grey">Photos stay in this browser&apos;s memory until they are encrypted.</p>
       </div>
     </div>
   );

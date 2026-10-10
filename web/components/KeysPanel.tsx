@@ -5,6 +5,7 @@
  * `likeness:reference` key and stores an encrypted note. Device B, with the same synced passkey,
  * derives the same key (same fingerprint) and decrypts the note live. Nothing secret is stored.
  */
+import { pillClass } from "@/components/ds";
 import { isMeraError } from "@category-labs/mera";
 import { useState } from "react";
 import { open, seal, type Sealed } from "@/lib/crypto/envelope";
@@ -67,56 +68,60 @@ export function KeysPanel() {
     });
 
   return (
-    <section className="rounded-card border border-line bg-panel p-8">
-      <h2 className="font-display text-xl font-semibold">Your keys</h2>
-      <p className="mt-2 max-w-2xl text-sm text-muted">
+    <section className="rounded-[22px] border border-divider p-5 sm:p-6">
+      <h3 className="m-0 text-[18px] font-semibold">Your keys</h3>
+      <p className="mt-2 max-w-2xl text-[14px] text-grey">
         Your face data is encrypted in this browser with a key derived from your passkey. We never see the key, and we
         store nothing that could rebuild it. Any device with the same synced passkey derives the same key.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <button disabled={busy} onClick={create} className="rounded-full bg-text px-5 py-2.5 text-sm font-semibold text-ground disabled:opacity-50">
+        <button type="button" disabled={busy} onClick={create} className={pillClass("ink")}>
           Create passkey
         </button>
-        <button disabled={busy} onClick={derive} className="rounded-full border border-line px-5 py-2.5 text-sm font-semibold disabled:opacity-50">
+        <button type="button" disabled={busy} onClick={derive} className={pillClass("outline")}>
           Use my existing passkey
         </button>
       </div>
 
       {key && (
         <div className="mt-6 space-y-5">
-          <dl className="grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
+          <dl className="grid grid-cols-1 gap-y-2 text-[14px] sm:grid-cols-[10rem_1fr]">
             <dt className="text-dim">Namespace</dt>
             <dd className="font-mono">likeness:reference</dd>
             <dt className="text-dim">Key fingerprint</dt>
-            <dd className="tnum font-mono text-up">{key.fingerprint}</dd>
+            <dd className="tnum font-mono text-ok">{key.fingerprint}</dd>
           </dl>
-          <p className="text-xs text-dim">
+          <p className="text-[13px] text-grey">
             Open this page on a second device with the same passkey. The fingerprint will match, and it can decrypt the
             note below.
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <label htmlFor="keys-note" className="sr-only">
+              A note to encrypt
+            </label>
             <input
+              id="keys-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="A note to encrypt"
-              className="w-80 rounded-full border border-line bg-surface px-4 py-2 text-sm"
+              className="min-h-11 w-full max-w-80 rounded-[14px] border border-field bg-white px-4 py-2 text-[15px]"
             />
-            <button disabled={busy || !note} onClick={store} className="rounded-full border border-line px-5 py-2 text-sm disabled:opacity-50">
+            <button type="button" disabled={busy || !note} onClick={store} className={pillClass("outline")}>
               Encrypt and store
             </button>
-            <button disabled={busy} onClick={load} className="rounded-full border border-line px-5 py-2 text-sm disabled:opacity-50">
+            <button type="button" disabled={busy} onClick={load} className={pillClass("outline")}>
               Fetch and decrypt
             </button>
           </div>
           {decrypted !== null && (
-            <p className="text-sm">
-              Decrypted on this device: <span className="font-mono text-up">{decrypted}</span>
+            <p className="text-[14px]">
+              Decrypted on this device: <span className="font-mono text-ok">{decrypted}</span>
             </p>
           )}
         </div>
       )}
-      {status && <p className="mt-4 text-sm text-warn">{status}</p>}
+      {status && <p role="status" className="mt-4 text-[14px] text-wait">{status}</p>}
     </section>
   );
 }
