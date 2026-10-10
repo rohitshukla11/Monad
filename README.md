@@ -139,17 +139,45 @@ history from cached RPC log scans; current state always comes from the contracts
 
 ### Deploying
 
-Run `web/` on one always-on Node 22 server with a persistent disk, about 2 GB of RAM and HTTPS on a
-stable domain. Render keys and matched capture digests live in that server's memory by design, and the
-free-level face model (260 MB) lives on its disk. Every `*_FILE` secret can be passed as its value
-instead (for example `ATTESTER_PRIVATE_KEY`, `C2PA_CERT_PEM`, `DYNAMIC_AGENT_JSON`), and `NEXT_PUBLIC_RP_ID`
-must be the deployed domain.
+The app runs best as **one always-on container** with a persistent volume. Render keys and matched
+capture digests live in that server's memory by design, and the free-level face model (260 MB) lives on
+its volume. [`web/Dockerfile`](web/Dockerfile) builds it and [`web/railway.json`](web/railway.json)
+configures Railway. Any Docker host works the same way.
 
-Vercel also builds it ([`web/vercel.json`](web/vercel.json); `STORE_DRIVER=blob`;
-`pnpm index:seed-blob` to start with a caught-up history cache), with known limits:
+**On Railway:**
 
-- across serverless instances, a photo release or a matched-photo record can be missing, so renders
-  and registration may need a retry;
+1. **New project → Deploy from GitHub repo.** In the service settings:
+   - set **Root Directory** to `web` (Railway then uses `railway.json` and the Dockerfile);
+   - keep **one replica**.
+2. **Add a volume** to the service, mounted at `/data`. Records, ciphertext, renders, the history
+   cache and the face models go there.
+3. **Networking → Generate domain.** Note it, e.g. `likeness-production.up.railway.app`.
+4. **Variables.** Set these before the first build, because the public ones are compiled into the page:
+   - `NEXT_PUBLIC_RP_ID`: the domain, with no scheme;
+   - `NEXT_PUBLIC_APP_URL`: `https://` plus the domain;
+   - `NEXT_PUBLIC_DYNAMIC_ENV_ID`;
+   - the secrets, as values:
+     - `ATTESTER_PRIVATE_KEY`, `DRIP_PRIVATE_KEY`, `RENDER_AGENT_PRIVATE_KEY`;
+     - `C2PA_CERT_PEM`, `C2PA_KEY_PEM`;
+     - `DIDIT_API_KEY`, `VERIFICATION_LEVEL`, `DIDIT_WORKFLOW_ID_FREE`, `DIDIT_WORKFLOW_ID_FULL`;
+     - `GEMINI_API_KEY`, `GEMINI_IMAGE_MODEL`, `GEMINI_IMAGE_SIZE`, `GEMINI_FILTER_MODEL`;
+     - optionally `DIDIT_WEBHOOK_SECRET`, `DYNAMIC_API_KEY`, `DYNAMIC_WEBHOOK_SECRET`,
+       `DYNAMIC_DELEGATION_PRIVATE_KEY_PEM`, `DYNAMIC_AGENT_JSON`.
+
+   Leave `DEV_WALLETS` and `DEV_DELEGATION` unset. The Dockerfile already sets the `/data` paths.
+5. **Dynamic:** add `https://<domain>` to the environment's allowed origins. **Didit:** to use its
+   webhook instead of polling, point it at `https://<domain>/api/didit/webhook`.
+
+On first boot the container downloads the face models to the volume when `VERIFICATION_LEVEL=free`. It
+then builds the history cache in the background: about 15 minutes for the 1.3M blocks since deployment,
+with pages answering throughout. Passkeys are bound to the domain. A creator onboarded on `localhost`
+cannot release photos on the deployed site, so onboard creators there.
+
+**Vercel** also builds the app ([`web/vercel.json`](web/vercel.json), `STORE_DRIVER=blob`,
+`pnpm index:seed-blob`), with known limits:
+
+- across serverless instances, a photo release or a matched-photo record can be missing, so renders and
+  registration may need a retry;
 - the free-level face matcher is above the function size limit, so it does not run.
 
 ## App
