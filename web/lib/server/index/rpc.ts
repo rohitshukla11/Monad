@@ -16,8 +16,10 @@ import { pub, rpcUrl, singleton } from "../chain";
 import { fileGet, filePut, localDir } from "../files";
 import { emptyHistory, type History } from "./types";
 
-const CHUNK = 100n;
-const CONCURRENCY = 8;
+// Blocks per eth_getLogs (the public Monad RPC allows 100) and requests in flight. On Vercel the
+// outgoing IP is shared with other apps, so the public RPC's per-IP limit is hit sooner: ask less at once.
+const chunk = () => BigInt(process.env.INDEX_LOG_CHUNK ?? 100);
+const concurrency = () => Number(process.env.INDEX_SCAN_CONCURRENCY ?? (process.env.VERCEL ? 2 : 8));
 const abi = [...CreatorRegistryAbi, ...LicenseRegistryAbi, ...LicenseEscrowAbi];
 
 function cacheFile(): string {
@@ -133,25 +135,42 @@ function apply(h: History, logs: Log[], times: Map<bigint, number>) {
 
 async function scan(h: History, file: string): Promise<History> {
   const client = pub();
-  const head = await client.getBlockNumber({ cacheTime: 0 });
+  let head: bigint;
+  try {
+    head = await client.getBlockNumber({ cacheTime: 0 });
+  } catch (e) {
+    console.error(JSON.stringify({ service: "index", error: `head: ${(e as Error).message.split("\n")[0]}` }));
+    return h;
+  }
   const from = BigInt(h.head) + 1n;
   if (from > head) return h;
   const address = [requireAddress("CreatorRegistry"), requireAddress("LicenseRegistry"), requireAddress("LicenseEscrow")];
 
   const ranges: [bigint, bigint][] = [];
+  const CHUNK = chunk();
   for (let b = from; b <= head; b += CHUNK) ranges.push([b, b + CHUNK - 1n > head ? head : b + CHUNK - 1n]);
   // A long gap (a fresh deployment with no cache) is scanned in slices: stop at the budget, keep what
   // was read, and continue on the next call. History is then complete up to h.head, never beyond it.
   const started = Date.now();
   let to = from - 1n;
   const logs: Log[] = [];
-  for (let i = 0; i < ranges.length; i += CONCURRENCY) {
-    const slice = ranges.slice(i, i + CONCURRENCY);
-    const batch = await Promise.all(slice.map(([fromBlock, toBlock]) => client.getLogs({ address, fromBlock, toBlock })));
-    for (const b of batch) logs.push(...(b as Log[]));
+  // A batch that still fails after the client's retries (a rate-limited RPC) ends this call's scan: what
+  // was read before it is kept, and the next call continues from there. Pages are never failed by it.
+  const n = concurrency();
+  for (let i = 0; i < ranges.length; i += n) {
+    const slice = ranges.slice(i, i + n);
+    let batch: Log[][];
+    try {
+      batch = (await Promise.all(slice.map(([fromBlock, toBlock]) => client.getLogs({ address, fromBlock, toBlock })))) as Log[][];
+    } catch (e) {
+      console.error(JSON.stringify({ service: "index", error: `logs from ${slice[0][0]}: ${(e as Error).message.split("\n").find((l) => l.startsWith("Details:")) ?? (e as Error).message.split("\n")[0]}` }));
+      break;
+    }
+    for (const b of batch) logs.push(...b);
     to = slice[slice.length - 1][1];
     if (scanBudget() && Date.now() - started > scanBudget()) break;
   }
+  if (to < from) return h;
   logs.sort((x, y) => Number(x.blockNumber! - y.blockNumber!) || Number(x.logIndex! - y.logIndex!));
 
   // Monad's RPC returns blockTimestamp on each log; anything else falls back to the block header.
@@ -193,6 +212,7 @@ export async function rpcHistory(): Promise<History> {
   const mine: Promise<History> = (current.scanning ?? Promise.resolve(current.history))
     .catch(() => current.history)
     .then(() => scan(current.history, file))
+    .catch(() => current.history)
     .then((h) => (current.history = h))
     .finally(() => {
       if (current.scanning === mine) current.scanning = null;

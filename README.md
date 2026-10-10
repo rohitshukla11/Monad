@@ -2,6 +2,10 @@
 
 **Licence your face to AI, on your terms, and pull it back any time.**
 
+**Live:** [www.likeness.site](https://www.likeness.site), running on Vercel against the Monad testnet
+contracts below. See what that deployment has configured at
+[/status](https://www.likeness.site/status).
+
 Likeness is a likeness-licensing protocol on Monad, with a reference app on top:
 
 - **Creators** prove they are a real, live adult, capture an encrypted reference set of their face,
@@ -128,6 +132,13 @@ history from cached RPC log scans; current state always comes from the contracts
 
 ### Deploying
 
+Production runs on Vercel at `www.likeness.site`, with `likeness.site` redirecting to it. Its settings
+in the steps below are:
+
+- `NEXT_PUBLIC_RP_ID=likeness.site`, which covers both hosts;
+- `NEXT_PUBLIC_APP_URL=https://www.likeness.site`;
+- a dedicated Monad testnet RPC in `MONAD_RPC_URL`.
+
 **On Vercel** (the configuration is in [`web/vercel.json`](web/vercel.json)):
 
 1. **Add New → Project**, import the GitHub repo, and set **Root Directory** to `web`. Leave the
@@ -142,7 +153,11 @@ history from cached RPC log scans; current state always comes from the contracts
 4. **Settings → Environment Variables** (Production). Set these before the first deploy, because the
    public ones are compiled into the page:
    - `STORE_DRIVER=blob`;
-   - `NEXT_PUBLIC_RP_ID`: the domain, with no scheme;
+   - `MONAD_RPC_URL`: a dedicated Monad testnet RPC endpoint with its own key, for the server. The
+     public RPC allows 25 requests a second per IP, and Vercel's outgoing IPs are shared, so the
+     server's history scan gets rate limited. Browsers keep using `NEXT_PUBLIC_MONAD_RPC_URL`;
+   - `NEXT_PUBLIC_RP_ID`: the domain, with no scheme. For a site on `www.`, use the parent domain
+     (`likeness.site`) so passkeys work on both;
    - `NEXT_PUBLIC_APP_URL`: `https://` plus the domain;
    - `NEXT_PUBLIC_DYNAMIC_ENV_ID`;
    - the secrets, as values. Every `*_FILE` secret has a value form, read when the file is absent:
@@ -162,8 +177,9 @@ history from cached RPC log scans; current state always comes from the contracts
 
 Vercel stores the vault, app records, renders and the chain-history cache in private Blob.
 
-History is read by scanning contract logs over the public RPC, at most 20 s per request, with progress
-saved to Blob. With this deployment's start block that takes only a few requests. A hosted Envio indexer
+History is read by scanning contract logs over the RPC, at most 20 s per request, with progress saved
+to Blob. If the RPC refuses a batch, the request serves the history read so far, and the next one
+continues from there. With this deployment's start block that takes only a few requests. A hosted Envio indexer
 (`ENVIO_GRAPHQL_URL`) replaces the scan. `pnpm index:seed-blob` uploads a caught-up local cache.
 
 Known limits on Vercel, accepted for the testnet demo:
