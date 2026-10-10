@@ -1,5 +1,6 @@
 "use client";
 
+import { useLogout } from "@dynamic-labs-sdk/react-hooks";
 import Link from "next/link";
 import type { Address } from "viem";
 import { useDynamicState } from "@/app/providers";
@@ -34,6 +35,7 @@ export function WalletBadge() {
             {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
           </span>
           <Avatar seed={wallet.address} size={52} />
+          {wallet.kind === "dynamic" && dynamic === "ready" && <SignOut />}
         </span>
       ) : (
         <Link href="/onboard" className="inline-flex min-h-11 items-center rounded-full border border-ink-line-2 px-5 font-semibold text-white no-underline hover:border-lime">
@@ -41,5 +43,20 @@ export function WalletBadge() {
         </Link>
       )}
     </div>
+  );
+}
+
+/** Ends the Dynamic session in this browser (the embedded wallet itself is kept by Dynamic). */
+function SignOut() {
+  const logout = useLogout();
+  return (
+    <button
+      type="button"
+      onClick={() => logout.mutate()}
+      disabled={logout.isPending}
+      className="inline-flex min-h-11 items-center rounded-full border border-ink-line-2 px-4 text-[14px] font-semibold text-white hover:border-lime disabled:opacity-50"
+    >
+      Sign out
+    </button>
   );
 }
