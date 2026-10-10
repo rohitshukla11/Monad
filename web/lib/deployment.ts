@@ -13,11 +13,11 @@ export const deployment: {
   ReceiptAnchor: Address | null;
 } = {
   chainId: 10143,
-  startBlock: 69778020,
-  CreatorRegistry: "0xe96FB286F36372EffCF846F8a0d25773D63A3618",
-  LicenseRegistry: "0x69e3A6856ef324205D67CAA4F16220436f324f45",
-  LicenseEscrow: "0xB72a55D7181A1605FCB70a665e4B408992169201",
-  ReceiptAnchor: "0xF65313C01b2E252bedfd79cAB266Fab2b14D4C1f",
+  startBlock: 69802475,
+  CreatorRegistry: "0xc0eadb706D175e317c8D89cD250781fC3d14008B",
+  LicenseRegistry: "0x38c8EcA2782fB64C23daB9B3432E668F81Fbacc9",
+  LicenseEscrow: "0xf7659B8CFA2A484aE30e638c2490131Bc568dA0A",
+  ReceiptAnchor: "0x272b5Bdf04564dA897a66aE84E18c822876d72Fe",
 };
 
 export function requireAddress(name: "CreatorRegistry" | "LicenseRegistry" | "LicenseEscrow" | "ReceiptAnchor"): Address {

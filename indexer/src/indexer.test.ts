@@ -17,8 +17,9 @@ const ev = (contract: string, event: string, params: Record<string, unknown>, bl
   contract,
   event,
   params,
-  // Above config.yaml's start_block, or the indexer filters the event out before any handler.
-  block: { number: 69_800_000 + block, timestamp: 1_790_000_000 + block },
+  // Far above config.yaml's start_block (which moves with each deployment), or the indexer filters the
+  // event out before any handler.
+  block: { number: 1_000_000_000 + block, timestamp: 1_790_000_000 + block },
   transaction: { hash: `0x${(++n).toString(16).padStart(64, "0")}` },
 }) as never;
 
@@ -63,7 +64,7 @@ describe("Likeness indexer", () => {
 
     // Event tables carry the app's History row fields.
     const issued = await indexer.LicenceIssued.getAll();
-    expect(issued[0]).toMatchObject({ licenceId: 1n, creator, licensee: brand, block: 69_800_101, autoApproved: true });
+    expect(issued[0]).toMatchObject({ licenceId: 1n, creator, licensee: brand, block: 1_000_000_101, autoApproved: true });
     expect((await indexer.RenderPaid.getAll())[0].assetHash).toBe(asset);
   });
 

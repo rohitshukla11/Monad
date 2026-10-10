@@ -251,25 +251,25 @@ cd indexer && pnpm test           # Envio handlers on the in-memory test indexer
 ## Deployments (Monad testnet, chain 10143)
 
 Deployed 2026-10-10 (UTC) from `0x68343Aa0598b7FCAA102769D172e59cdDfae10f2`, starting at block
-69,778,020. All four contracts are verified on Sourcify (MonadVision) as exact matches.
+69,802,475. All four contracts are verified on Sourcify (MonadVision) as exact matches.
 Machine-readable: [`deployments/monad-testnet.json`](deployments/monad-testnet.json).
 
-This deployment replaces the one from 2026-10-05. Creators, licences, escrow balances and receipts on
-the old contracts are not carried over: no creator is registered on these contracts yet.
+This deployment replaces the earlier ones. Creators, licences, escrow balances and receipts on the old
+contracts are not carried over: no creator is registered on these contracts yet.
 
 | Contract | Address | Deploy tx |
 |---|---|---|
-| CreatorRegistry | [`0xe96FB286F36372EffCF846F8a0d25773D63A3618`](https://testnet.monadvision.com/address/0xe96FB286F36372EffCF846F8a0d25773D63A3618) | [`0x9606b01e…`](https://testnet.monadvision.com/tx/0x9606b01e9db88c2251d616fce038efee2db90b42ee2e3f7557074f3d994d1d85) |
-| LicenseRegistry | [`0x69e3A6856ef324205D67CAA4F16220436f324f45`](https://testnet.monadvision.com/address/0x69e3A6856ef324205D67CAA4F16220436f324f45) | [`0x8b60e5cb…`](https://testnet.monadvision.com/tx/0x8b60e5cb22830ee262fa537851154ae07d13ebf65df487c6743a02e517af83e0) |
-| ReceiptAnchor | [`0xF65313C01b2E252bedfd79cAB266Fab2b14D4C1f`](https://testnet.monadvision.com/address/0xF65313C01b2E252bedfd79cAB266Fab2b14D4C1f) | [`0x3c14b92a…`](https://testnet.monadvision.com/tx/0x3c14b92a95cb610ca790b23f0a73b21c32c8c96b04dadbb4f96beebd4f004800) |
-| LicenseEscrow | [`0xB72a55D7181A1605FCB70a665e4B408992169201`](https://testnet.monadvision.com/address/0xB72a55D7181A1605FCB70a665e4B408992169201) | [`0x444f2bf8…`](https://testnet.monadvision.com/tx/0x444f2bf8e0cac47852e9664fbb30e48ccd50af2b00e9d98b463feaf7a604e82b) |
+| CreatorRegistry | [`0xc0eadb706D175e317c8D89cD250781fC3d14008B`](https://testnet.monadvision.com/address/0xc0eadb706D175e317c8D89cD250781fC3d14008B) | [`0x8cac5aca…`](https://testnet.monadvision.com/tx/0x8cac5aca0d857b6f7a27ec09192c8b3888b26c0e1136abc0e20d87af41f9488e) |
+| LicenseRegistry | [`0x38c8EcA2782fB64C23daB9B3432E668F81Fbacc9`](https://testnet.monadvision.com/address/0x38c8EcA2782fB64C23daB9B3432E668F81Fbacc9) | [`0x73fde51c…`](https://testnet.monadvision.com/tx/0x73fde51caa9f39d94f749786b330a183b217021739396cb2692d4cadb1c39eaf) |
+| ReceiptAnchor | [`0x272b5Bdf04564dA897a66aE84E18c822876d72Fe`](https://testnet.monadvision.com/address/0x272b5Bdf04564dA897a66aE84E18c822876d72Fe) | [`0x9ca3face…`](https://testnet.monadvision.com/tx/0x9ca3facefbf70cd26b05ac89c922cea3df9ba0b926ff1790fcfbf25aff49ff32) |
+| LicenseEscrow | [`0xf7659B8CFA2A484aE30e638c2490131Bc568dA0A`](https://testnet.monadvision.com/address/0xf7659B8CFA2A484aE30e638c2490131Bc568dA0A) | [`0xa11e3ba0…`](https://testnet.monadvision.com/tx/0xa11e3ba01d4ad329e81cee56093311ca0006af390f089a52e9611042ea585439) |
 | USDC (Circle) | [`0x534b2f3A21130d7a60830c2Df862319e593943A3`](https://testnet.monadvision.com/address/0x534b2f3A21130d7a60830c2Df862319e593943A3) | [Circle docs](https://developers.circle.com/stablecoins/usdc-contract-addresses) |
 
 Wiring transactions:
 
-- `LicenseRegistry.setEscrow`: [`0x4a23e561…`](https://testnet.monadvision.com/tx/0x4a23e5614ab3fd317c9433ef1f13bef67fd1d185b6f373a81a0e241ab80c7326)
-- `ReceiptAnchor.setEscrow`: [`0x08cd278a…`](https://testnet.monadvision.com/tx/0x08cd278ac6ea0d7be1b12f4fc899234c731155f5be7d9e9adee5fdd95ebdbf29)
-- `LicenseEscrow.setRenderAgent` (render-agent key `0x87CA75118FD0C7EF3090c82E8df4CF4b56cD03cA`): [`0x179fb500…`](https://testnet.monadvision.com/tx/0x179fb500edb514f3964a13861a4f3d9d12fe923365a4b00b9b573df749afc8bc)
+- `LicenseRegistry.setEscrow`: [`0x8ae5bf06…`](https://testnet.monadvision.com/tx/0x8ae5bf067e480cb27d35919210aa720bca2c048b05868b57e837c0e6751412bb)
+- `ReceiptAnchor.setEscrow`: [`0x8748e893…`](https://testnet.monadvision.com/tx/0x8748e8933ef3b643b1a9ba7609824c9494afb590b5f9f88dfdf548a8e2910550)
+- `LicenseEscrow.setRenderAgent` (render-agent key `0x87CA75118FD0C7EF3090c82E8df4CF4b56cD03cA`): [`0x51c02ed8…`](https://testnet.monadvision.com/tx/0x51c02ed8adf3587c2af3cdb07cc62470d13f1aed9c2604351521dd4f06bca2a7)
 
 Roles:
 
