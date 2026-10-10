@@ -90,11 +90,68 @@ export function embedManifest(bytes: Uint8Array, mime: "image/jpeg" | "image/png
   return new Uint8Array(out.buffer);
 }
 
+/** A preview Likeness publishes: a creator's profile photo or a sample render. Never a licence. */
+export const PREVIEW_ASSERTION = "xyz.likeness.preview";
+export type PreviewAssertion = {
+  kind: "profile-photo" | "sample-render";
+  statement: string;
+  creator: string;
+  creatorRegistry: string;
+  createdAt: string;
+};
+
+const PREVIEW_STATEMENT: Record<PreviewAssertion["kind"], string> = {
+  "profile-photo": "Profile photo of a Likeness creator. Not a licensed asset: no licence to use this face comes with it.",
+  "sample-render": "Sample render, not a licence. Made by Likeness for the creator's profile; no licence to use this face comes with it.",
+};
+
+export function embedPreviewManifest(bytes: Uint8Array, mime: "image/jpeg" | "image/png", p: Omit<PreviewAssertion, "statement">, model?: string): Uint8Array {
+  const a: PreviewAssertion = { ...p, statement: PREVIEW_STATEMENT[p.kind] };
+  const builder = Builder.withJson({
+    claim_generator_info: [{ name: "Likeness preview service", version: "0.1.0" }],
+    title: `likeness-${p.kind}.${mime === "image/png" ? "png" : "jpg"}`,
+    format: mime,
+    assertions: [
+      {
+        label: "c2pa.actions",
+        data: {
+          actions: [
+            p.kind === "sample-render"
+              ? { action: "c2pa.created", digitalSourceType: SOURCE_TYPE.model, softwareAgent: { name: model ?? "Likeness sample renderer" } }
+              : {
+                  action: "c2pa.created",
+                  digitalSourceType: "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture",
+                  description: "The creator's own photo, resized, metadata removed and watermarked for their public profile",
+                },
+          ],
+        },
+      },
+      {
+        label: "c2pa.training-mining",
+        data: {
+          entries: {
+            "c2pa.ai_generative_training": { use: "notAllowed" },
+            "c2pa.ai_inference": { use: "notAllowed" },
+            "c2pa.ai_training": { use: "notAllowed" },
+            "c2pa.data_mining": { use: "notAllowed" },
+          },
+        },
+      },
+      { label: PREVIEW_ASSERTION, data: a },
+    ],
+  } as never);
+  const out: { buffer: Buffer | null } = { buffer: null };
+  builder.sign(signer(), { buffer: Buffer.from(bytes), mimeType: mime }, out as never);
+  if (!out.buffer) throw new Error("C2PA signing produced no output");
+  return new Uint8Array(out.buffer);
+}
+
 export type ManifestRead =
   | { present: false; error?: string }
   | {
       present: true;
       licence: LicenceAssertion | null;
+      preview: PreviewAssertion | null;
       signer: { issuer?: string; commonName?: string; alg?: string };
       /** c2pa-rs validation codes; "signingCredential.untrusted" is expected for the test certificate. */
       validation: { code: string; explanation?: string }[];
@@ -121,9 +178,11 @@ export async function readManifest(bytes: Uint8Array, mime: string): Promise<Man
   const validation = store.validation_status ?? [];
   const failures = validation.filter((v) => v.code !== "signingCredential.untrusted");
   const licence = (m.assertions?.find((x) => x.label === LICENCE_ASSERTION)?.data as LicenceAssertion | undefined) ?? null;
+  const preview = (m.assertions?.find((x) => x.label === PREVIEW_ASSERTION)?.data as PreviewAssertion | undefined) ?? null;
   return {
     present: true,
     licence,
+    preview,
     signer: { issuer: m.signature_info?.issuer, commonName: m.signature_info?.common_name, alg: m.signature_info?.alg },
     validation,
     signatureValid: failures.length === 0,

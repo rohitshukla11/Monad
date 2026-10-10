@@ -5,8 +5,8 @@ import "server-only";
  * "local" (the default) keeps them on disk. On Vercel the disk is per instance and only /tmp is
  * writable, so a deployment there uses blob.
  */
-import { get, put } from "@vercel/blob";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { del, get, put } from "@vercel/blob";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const useBlob = () => (process.env.STORE_DRIVER ?? "local") === "blob";
@@ -37,4 +37,12 @@ export async function fileGet(blobPath: string, localFile: string): Promise<Buff
   } catch {
     return null;
   }
+}
+
+export async function fileDelete(blobPath: string, localFile: string): Promise<void> {
+  if (useBlob()) {
+    await del(blobPath).catch(() => {});
+    return;
+  }
+  await rm(/*turbopackIgnore: true*/ localFile, { force: true });
 }

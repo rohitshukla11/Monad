@@ -95,6 +95,22 @@ export function integrations(): Integration[] {
       env: ["C2PA_CERT_FILE and C2PA_KEY_FILE, or C2PA_CERT_PEM and C2PA_KEY_PEM"],
       whenMissing: "Renders are refused: every output must carry a manifest",
     },
+    {
+      key: "email-codes",
+      name: "Work-email codes (Resend)",
+      configured: set("RESEND_API_KEY"),
+      turnsOn: "Brands can verify a work email other than their sign-in email with a 6-digit code",
+      env: ["RESEND_API_KEY", "MAIL_FROM (optional)"],
+      whenMissing: "Only the email a brand signs in with (proven by Dynamic) can verify its domain; otherwise it shows as an unverified brand",
+    },
+    {
+      key: "brand-kyb",
+      name: "Brand KYB (Didit)",
+      configured: false,
+      turnsOn: "Business verification of brands, beyond the domain check",
+      env: ["not built yet"],
+      whenMissing: "Not run: brand badges cover the email domain only, and nothing claims a business check",
+    },
   ];
 }
 

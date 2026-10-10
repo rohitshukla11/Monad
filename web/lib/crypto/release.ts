@@ -72,3 +72,49 @@ export async function unwrapForLicence(sealed: Sealed, licenceKek: CryptoKey, li
 export function newServiceKey(): { secretKey: Uint8Array; publicKey: Uint8Array } {
   return x25519.keygen();
 }
+
+// ---------------------------------------------------------------- sample-render release
+
+/**
+ * Release for one sample-render request. Same ECIES as a licence release, under its own context
+ * ("sample:<creator>:<nonce>", bound as AES-GCM additional data and in the HKDF info) and to the
+ * render service's sample key, which every server instance can derive. The service opens the
+ * reference set for that request only and drops the key material when the request ends.
+ */
+export type SampleRelease = { v: 1; context: string; epk: string; sealed: Sealed };
+const sampleAad = (context: string) => enc.encode(`likeness:release|${context}`);
+
+async function sampleKey(shared: Uint8Array, epk: Uint8Array, spk: Uint8Array, context: string, usage: KeyUsage) {
+  const okm = hkdf(sha256, shared, concatBytes(epk, spk), enc.encode(`likeness/release/sample/v1|${context}`), 32);
+  try {
+    return await crypto.subtle.importKey("raw", okm as BufferSource, { name: "AES-GCM" }, false, [usage]);
+  } finally {
+    okm.fill(0);
+  }
+}
+
+export const sampleContext = (creator: string, nonce: string) => `sample:${creator.toLowerCase()}:${nonce}`;
+
+export async function releaseForSamples(dek: Uint8Array, servicePublicKey: Uint8Array, context: string): Promise<SampleRelease> {
+  const { secretKey, publicKey: epk } = x25519.keygen();
+  const shared = x25519.getSharedSecret(secretKey, servicePublicKey);
+  try {
+    const key = await sampleKey(shared, epk, servicePublicKey, context, "encrypt");
+    return { v: 1, context, epk: b64u.encode(epk), sealed: await seal(key, dek, sampleAad(context)) };
+  } finally {
+    secretKey.fill(0);
+    shared.fill(0);
+  }
+}
+
+export async function acceptSampleRelease(release: SampleRelease, serviceSecretKey: Uint8Array): Promise<Uint8Array> {
+  const epk = b64u.decode(release.epk);
+  const spk = x25519.getPublicKey(serviceSecretKey);
+  const shared = x25519.getSharedSecret(serviceSecretKey, epk);
+  try {
+    const key = await sampleKey(shared, epk, spk, release.context, "decrypt");
+    return await open(key, release.sealed, sampleAad(release.context));
+  } finally {
+    shared.fill(0);
+  }
+}

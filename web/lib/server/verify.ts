@@ -19,10 +19,11 @@ import { categoryLabels, regionLabels } from "@/lib/categories";
 import { formatDuration, usdc } from "@/lib/licensing";
 import { LIVENESS_NOTE } from "@/lib/verification";
 import { readManifest, type ManifestRead } from "./c2pa";
+import { mediaRecord } from "./media";
 import { history } from "./index";
 import { readCreatorWithHistory, readLicence, readReceipt, revokedAt, type CreatorView } from "./protocol";
 
-export type Verdict = "Licensed" | "Expired" | "Revoked" | "Unknown";
+export type Verdict = "Licensed" | "Expired" | "Revoked" | "Unknown" | "ProfilePhoto" | "Sample";
 
 export type Verification = {
   verdict: Verdict;
@@ -45,6 +46,8 @@ export type Verification = {
   } | null;
   creator: Pick<CreatorView, "address" | "trust" | "verifiedAt" | "upgradedAt"> | null;
   revoked: { at: number; tx: Hex; how: string } | null;
+  /** For a profile photo or sample render Likeness published: what it is and whether it is still up. */
+  preview: { kind: "profile-photo" | "sample-render"; status: "pending" | "live" | "removed"; publishedAt: number; removedAt?: number } | null;
   notes: string[];
 };
 
@@ -60,6 +63,30 @@ export async function verifyHash(assetHash: Hex, manifest: ManifestRead | null =
   }
 
   if (!receipt) {
+    // A preview Likeness published (by its exact bytes), or a file whose manifest says it is one.
+    const rec = await mediaRecord(assetHash.slice(2));
+    const kind = rec && rec.kind !== "brand-logo" ? rec.kind : manifest?.present && manifest.signatureValid ? (manifest.preview?.kind ?? null) : null;
+    if (kind) {
+      const creatorView = rec ? await readCreatorWithHistory(rec.owner as Hex) : manifest?.present && manifest.preview ? await readCreatorWithHistory(manifest.preview.creator as Hex) : null;
+      if (!rec) notes.push("Recognised from its content credential; these exact bytes are not on file (it was edited or re-encoded).");
+      if (rec?.status === "removed") notes.push("The creator has since taken it down.");
+      return {
+        verdict: kind === "profile-photo" ? "ProfilePhoto" : "Sample",
+        headline:
+          kind === "profile-photo"
+            ? "Profile photo of a Likeness creator. It is a preview, not a licensed asset: no licence to use this face comes with it."
+            : "Sample render: not a licence to use this face. Made by Likeness for the creator's profile.",
+        assetHash,
+        receipt: null,
+        manifest,
+        manifestMatches: null,
+        licence: null,
+        creator: creatorView ? { address: creatorView.address, trust: creatorView.trust, verifiedAt: creatorView.verifiedAt, upgradedAt: creatorView.upgradedAt } : null,
+        revoked: null,
+        preview: rec ? { kind: rec.kind as "profile-photo" | "sample-render", status: rec.status, publishedAt: rec.createdAt, removedAt: rec.removedAt } : null,
+        notes,
+      };
+    }
     return {
       verdict: "Unknown",
       headline: claimed
@@ -72,6 +99,7 @@ export async function verifyHash(assetHash: Hex, manifest: ManifestRead | null =
       licence: null,
       creator: null,
       revoked: null,
+      preview: null,
       notes,
     };
   }
@@ -122,6 +150,7 @@ export async function verifyHash(assetHash: Hex, manifest: ManifestRead | null =
     },
     creator: c ? { address: c.address, trust: c.trust, verifiedAt: c.verifiedAt, upgradedAt: c.upgradedAt } : null,
     revoked: rev ? { at: rev.timestamp, tx: rev.tx, how: rev.how } : null,
+    preview: null,
     notes: [...notes, `Licence length ${formatDuration(l.end - l.start)}.`],
   };
 }
