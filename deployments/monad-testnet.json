@@ -1,0 +1,14 @@
+{
+  "CreatorRegistry": "0x680A55c0Db4B44def9d88cCBF450C1f5dd37fd9a",
+  "LicenseEscrow": "0x38703a57c5f8eB2F8d1576A3d2B4B35A10D66FA6",
+  "LicenseRegistry": "0x87934d5E1A61be3Bb06FE54AC7e21E7704731d1C",
+  "ReceiptAnchor": "0xE33Dc788C060cb77F79A2AFF96Ca685f6C018721",
+  "attester": "0x8d53e13407890e18022bfAa413193ba4C6DCc1a5",
+  "chainId": 10143,
+  "feeBps": 1000,
+  "owner": "0x68343Aa0598b7FCAA102769D172e59cdDfae10f2",
+  "renderAgent": "0x68343Aa0598b7FCAA102769D172e59cdDfae10f2",
+  "startBlock": 68463943,
+  "treasury": "0x68343Aa0598b7FCAA102769D172e59cdDfae10f2",
+  "usdc": "0x534b2f3A21130d7a60830c2Df862319e593943A3"
+}
