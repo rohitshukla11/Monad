@@ -155,7 +155,7 @@ export async function generate(input: { licenceId: bigint; licensee: Address; pr
     const agentSig = await agent.signRender({ licenceId: input.licenceId, assetHash, renderIndex, deadline });
 
     const file = `${assetHash}.${out.mime === "image/png" ? "png" : "jpg"}`;
-    await filePut(`renders/${file}`, path.join(rendersDir(), file), signed, { contentType: out.mime, overwrite: false });
+    await filePut(`renders/${file}`, path.join(/*turbopackIgnore: true*/ rendersDir(), file), signed, { contentType: out.mime, overwrite: false });
     const record: RenderRecord = {
       assetHash,
       token: randomBytes(24).toString("base64url"),
@@ -224,7 +224,7 @@ export async function fileByToken(token: string): Promise<{ bytes: Buffer; mime:
   if (!/^[A-Za-z0-9_-]{32}$/.test(token)) return null;
   const r = (await dbList<RenderRecord>("renders")).find((x) => x.token === token && x.state === "paid");
   if (!r) return null;
-  const bytes = await fileGet(`renders/${r.file}`, path.join(rendersDir(), r.file));
+  const bytes = await fileGet(`renders/${r.file}`, path.join(/*turbopackIgnore: true*/ rendersDir(), r.file));
   if (!bytes) return null;
   return { bytes, mime: r.mime, name: `likeness-${r.licenceId}-${r.renderIndex}${r.test ? "-TEST-RENDER" : ""}.${r.file.split(".").pop()}` };
 }

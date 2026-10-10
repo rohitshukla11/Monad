@@ -40,6 +40,27 @@ With this set, all of the following are kept as private Blob objects instead of 
 
 On Vercel the disk is per instance, so `local` would lose data.
 
+### Seed the history cache (required without Envio)
+
+Without `ENVIO_GRAPHQL_URL`, the app reads licence and creator history by scanning contract logs over the
+public Monad RPC. From the deployment block that is over a million blocks, or about 13,000 log queries.
+At the RPC's limit of about 15 requests a second, that takes around 15 minutes, far longer than one
+function call.
+
+Each call therefore scans for at most 20 s (`INDEX_SCAN_BUDGET_MS`), saves its progress to Blob, and
+serves the history it has. Until the scan catches up, the landing page and marketplace show only the
+creators found so far. Seed the cache once from a machine that already has it, before anyone visits:
+
+```sh
+cd web
+BLOB_READ_WRITE_TOKEN=<the store's read-write token> pnpm index:seed-blob
+```
+
+The command brings the local cache up to the current block and uploads it under the name the deployment
+reads. That name depends on the RPC URL and start block, so use the same `NEXT_PUBLIC_MONAD_RPC_URL`.
+After seeding, each call only scans the blocks since the last one. A hosted Envio indexer
+(`ENVIO_GRAPHQL_URL`) replaces all of this.
+
 ## 3. Environment variables
 
 On Vercel there is no `../.secrets/` folder, so each secret is passed as its **value**. The `*_FILE`
@@ -62,7 +83,7 @@ still reads the file.
 | `DYNAMIC_API_KEY`, `DYNAMIC_WEBHOOK_SECRET` | Only if Dynamic delegated access or the server wallet is used |
 | `DYNAMIC_DELEGATION_PRIVATE_KEY_PEM` | Contents of `.secrets/dynamic-delegation.pem`, if used |
 | `DYNAMIC_AGENT_JSON` | Contents of `.secrets/dynamic-agent.json`, if used |
-| `ENVIO_GRAPHQL_URL` | Optional: a hosted Envio indexer. Without it, history comes from RPC log scans, cached in Blob |
+| `ENVIO_GRAPHQL_URL` | Optional: a hosted Envio indexer. Without it, history comes from RPC log scans, cached in Blob (seed it, below) |
 
 PEM values can be pasted with real newlines or with `\n` escapes. From a terminal in `web/`, the Vercel CLI
 reads a value from standard input, which keeps it out of shell history:
@@ -105,5 +126,13 @@ locally at the free level, or the deployment uses `full`, which needs Didit cred
 
 ## 6. Not yet verified
 
-These changes were checked locally: typecheck, unit tests, and the dev server reading secrets from files.
+These changes were checked locally:
+
+- typecheck and unit tests;
+- the dev server still reading secrets from files;
+- a clean checkout (no `.secrets`, `.data` or `.env.local`) built and served with `VERCEL=1`:
+  - pages without history loaded at once;
+  - with an empty cache, `/` and `/market` answered in 9 to 23 s;
+  - before the scan budget, those two timed out;
+- `pnpm index:seed-blob` ran up to the upload, which a fake token refused.
 They have not yet been deployed to Vercel, and the Blob code path has not run against a real Blob store.

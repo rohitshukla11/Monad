@@ -29,8 +29,14 @@ function cacheFile(): string {
 
 // The cache is kept with the other files (./files): on disk locally, in private Blob on Vercel, so a
 // fresh serverless instance does not rescan from the deployment block.
-const cachePaths = (name: string) => [`cache/${name}`, path.join(localDir("INDEX_CACHE_DIR", ""), name)] as const;
+const cachePaths = (name: string) => [`cache/${name}`, path.join(/*turbopackIgnore: true*/ localDir("INDEX_CACHE_DIR", ""), name)] as const;
 const SAVE_EVERY = 5 * 60_000;
+
+/** Milliseconds one call may spend scanning: 20 s on Vercel (a function has minutes, a page view less), unbounded locally. */
+const scanBudget = () => Number(process.env.INDEX_SCAN_BUDGET_MS ?? (process.env.VERCEL ? 20_000 : 0));
+
+/** The cache's file name for the current RPC and start block (scripts/seed-index-cache.ts uploads it). */
+export const indexCacheName = () => cacheFile();
 const lastSaved = new Map<string, number>();
 
 function startBlock(): bigint {
@@ -134,12 +140,17 @@ async function scan(h: History, file: string): Promise<History> {
 
   const ranges: [bigint, bigint][] = [];
   for (let b = from; b <= head; b += CHUNK) ranges.push([b, b + CHUNK - 1n > head ? head : b + CHUNK - 1n]);
+  // A long gap (a fresh deployment with no cache) is scanned in slices: stop at the budget, keep what
+  // was read, and continue on the next call. History is then complete up to h.head, never beyond it.
+  const started = Date.now();
+  let to = from - 1n;
   const logs: Log[] = [];
   for (let i = 0; i < ranges.length; i += CONCURRENCY) {
-    const batch = await Promise.all(
-      ranges.slice(i, i + CONCURRENCY).map(([fromBlock, toBlock]) => client.getLogs({ address, fromBlock, toBlock })),
-    );
+    const slice = ranges.slice(i, i + CONCURRENCY);
+    const batch = await Promise.all(slice.map(([fromBlock, toBlock]) => client.getLogs({ address, fromBlock, toBlock })));
     for (const b of batch) logs.push(...(b as Log[]));
+    to = slice[slice.length - 1][1];
+    if (scanBudget() && Date.now() - started > scanBudget()) break;
   }
   logs.sort((x, y) => Number(x.blockNumber! - y.blockNumber!) || Number(x.logIndex! - y.logIndex!));
 
@@ -153,7 +164,7 @@ async function scan(h: History, file: string): Promise<History> {
   for (const b of missing) times.set(b, Number((await client.getBlock({ blockNumber: b })).timestamp));
 
   apply(h, logs, times);
-  h.head = Number(head);
+  h.head = Number(to);
   // Save when there are new events, else at most every few minutes (each save is a Blob write on Vercel).
   if (logs.length > 0 || Date.now() - (lastSaved.get(file) ?? 0) > SAVE_EVERY) {
     await filePut(...cachePaths(file), JSON.stringify(h), { contentType: "application/json", overwrite: true }).catch(() => {});

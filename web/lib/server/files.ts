@@ -22,7 +22,7 @@ export async function filePut(blobPath: string, localFile: string, body: Uint8Ar
     await put(blobPath, typeof body === "string" ? body : Buffer.from(body), { access: "private", contentType: opts.contentType, allowOverwrite: opts.overwrite });
     return;
   }
-  await mkdir(path.dirname(localFile), { recursive: true });
+  await mkdir(path.dirname(/*turbopackIgnore: true*/ localFile), { recursive: true });
   await writeFile(/*turbopackIgnore: true*/ localFile, body, opts.overwrite ? undefined : { flag: "wx" });
 }
 

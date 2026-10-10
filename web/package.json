@@ -11,6 +11,7 @@
     "abi": "node scripts/abi.mjs",
     "demo": "tsx --conditions=react-server scripts/demo.ts",
     "seed": "tsx --conditions=react-server scripts/demo.ts --seed-only",
+    "index:seed-blob": "tsx --conditions=react-server scripts/seed-index-cache.ts",
     "c2pa:testcert": "sh scripts/c2pa-testcert.sh",
     "agent:dynamic": "tsx --conditions=react-server scripts/dynamic-agent.ts",
     "facecheck": "tsx --conditions=react-server scripts/facecheck.ts",
