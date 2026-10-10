@@ -6,6 +6,7 @@
  * the four-step accordion; the tilted, overlapping creator cards; the testimonial marquee (only with real quotes);
  * the CTA band. Motion is CSS plus an IntersectionObserver hook, and static under reduced motion.
  */
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { pillClass, Silhouette, silhouetteFor } from "@/components/ds";
@@ -44,18 +45,6 @@ function Ribbon({ words, dir, className, style }: { words: string[]; dir: "l" | 
         ))}
       </div>
     </div>
-  );
-}
-
-/** A neutral head-and-shoulders illustration: no face, no photo. */
-function Bust() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 240 260" className="h-full w-full">
-      <path d="M22 260c4-58 44-92 98-92s94 34 98 92z" fill="#2E3036" />
-      <path d="M98 150h44v34c0 12-10 20-22 20s-22-8-22-20z" fill="#C98FA4" />
-      <ellipse cx="120" cy="104" rx="52" ry="60" fill="#D9A0B4" />
-      <path d="M66 98c0-40 26-62 56-62 32 0 54 24 54 58-10-16-30-26-54-26-24 0-44 10-56 30z" fill="#3E2A33" />
-    </svg>
   );
 }
 
@@ -105,10 +94,11 @@ function Hero() {
           YOUR TERMS
         </h1>
         <div
-          className="lk-rise absolute left-1/2 top-[64px] h-[236px] w-[218px] sm:top-[150px] sm:h-[clamp(280px,30vw,440px)] sm:w-[clamp(258px,27.7vw,406px)]"
+          aria-hidden="true"
+          className="lk-rise absolute left-1/2 top-[70px] h-[250px] w-[164px] overflow-hidden rounded-t-[999px] sm:top-[150px] sm:h-[clamp(300px,31vw,450px)] sm:w-[clamp(196px,20.3vw,294px)]"
           style={{ transform: "translateX(-50%)" }}
         >
-          <Bust />
+          <Image src="/landing/portrait-lime.png" alt="" fill priority sizes="(min-width: 640px) 300px, 170px" className="scale-[1.04] object-cover object-top" />
         </div>
         <Ribbon words={RIBBON_A} dir="l" className="top-[236px] z-10 bg-violet text-white sm:top-[476px]" style={{ transform: "rotate(4deg)" }} />
         <Ribbon words={RIBBON_B} dir="r" className="top-[266px] z-10 bg-[#4C5230] text-white sm:top-[514px]" style={{ transform: "rotate(-3deg)" }} />
@@ -158,12 +148,12 @@ function Stats() {
               <span className="h-8 w-8 rounded-full border-2 border-ink bg-lime" />
             </span>
             <div aria-hidden="true" className="absolute right-10 top-10 hidden h-[230px] w-[260px] sm:block">
-              <span className="absolute left-5 top-2.5 flex h-[86px] w-[86px] items-end justify-center overflow-hidden rounded-full border-4 border-white bg-[#F6D9A8]">
-                <Silhouette fill="#C08A3E" width={74} height={86} />
+              <span className="absolute left-5 top-2.5 h-[86px] w-[86px] overflow-hidden rounded-full border-4 border-white">
+                <Image src="/landing/avatar-1.png" alt="" fill sizes="86px" className="scale-[1.06] object-cover" />
               </span>
               <span className="absolute left-[70px] top-24 h-1 w-[120px] origin-left rotate-[38deg] rounded bg-violet" />
-              <span className="absolute bottom-0 right-2.5 flex h-24 w-24 items-end justify-center overflow-hidden rounded-full border-4 border-white bg-[#F4C9D6]">
-                <Silhouette fill="#C27A92" width={82} height={96} />
+              <span className="absolute bottom-0 right-2.5 h-24 w-24 overflow-hidden rounded-full border-4 border-white">
+                <Image src="/landing/avatar-2.png" alt="" fill sizes="96px" className="scale-[1.06] object-cover" />
               </span>
             </div>
             <span className="mt-auto self-start rounded-full bg-violet-deep px-3.5 py-1.5 text-[13px] font-semibold text-white">For brands</span>
@@ -174,7 +164,7 @@ function Stats() {
             </p>
           </article>
           <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-5">
-            <article className={`rv${seen ? " in" : ""} flex flex-1 flex-col gap-1.5 rounded-[30px] bg-[linear-gradient(135deg,#DCF37B,#F0FAC8)] p-7 text-ink`} style={{ transitionDelay: ".25s" }} title={MEASUREMENTS.registerMs.source}>
+            <article className={`rv${seen ? " in" : ""} flex flex-1 flex-col gap-1.5 rounded-[30px] bg-lime bg-[url(/landing/card-lime.png)] bg-cover bg-center p-7 text-ink`} style={{ transitionDelay: ".25s" }} title={MEASUREMENTS.registerMs.source}>
               <span className="tnum font-display text-[clamp(40px,5vw,52px)] font-black leading-none">{ms} MS</span>
               <span className="font-display text-[17px] font-bold leading-snug">TO REGISTER A CREATOR ON MONAD</span>
               <span className="text-[13px] text-[#3E4148]">Measured on Monad testnet, send to receipt.</span>
@@ -250,23 +240,41 @@ function HowItWorks() {
               Political, adult and deceptive uses are banned in the contract itself. You choose everything else, and you can pull a licence back in one
               click.
             </p>
-            <div className="relative flex aspect-[4/3] items-end justify-center overflow-hidden rounded-[28px] bg-[#F6D9A8]">
-              <Silhouette fill="#C08A3E" width="70%" height="94%" />
+            <div className="relative aspect-[5/4] overflow-hidden rounded-[28px] bg-[#25B6D2]">
+              <Image src="/landing/portrait-cyan.png" alt="" fill sizes="(min-width: 1024px) 540px, 92vw" className="scale-[1.03] object-cover object-[50%_22%]" />
               <div
-                className={`${c("from-l")} absolute left-[18px] top-1/2 -mt-[60px] flex flex-col gap-2.5 rounded-[18px] bg-white px-3.5 py-3 text-[13px] shadow-[0_12px_30px_rgba(18,19,22,0.15)]`}
+                className={`${c("from-l")} absolute left-[18px] top-1/2 -mt-[70px] flex flex-col gap-2.5 rounded-[18px] bg-white px-3.5 py-3 text-[13px] shadow-[0_12px_30px_rgba(18,19,22,0.15)]`}
                 style={{ transitionDelay: ".7s" }}
               >
                 <span className="flex items-center gap-2">
-                  <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-ok" />
-                  <b className="font-semibold">Advertising licence</b> · licensed
+                  <span aria-hidden="true" className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                    <Image src="/landing/avatar-3.png" alt="" fill sizes="28px" className="scale-[1.06] object-cover" />
+                  </span>
+                  <b className="font-semibold">Advertising licence</b>
+                  <span className="flex items-center gap-1.5 text-grey">
+                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-ok" />
+                    licensed
+                  </span>
                 </span>
                 <span className="flex items-center gap-2">
-                  <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-violet" />
-                  <b className="font-semibold">Social request</b> · waiting
+                  <span aria-hidden="true" className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                    <Image src="/landing/avatar-4.png" alt="" fill sizes="28px" className="scale-[1.06] object-cover" />
+                  </span>
+                  <b className="font-semibold">Social request</b>
+                  <span className="flex items-center gap-1.5 text-grey">
+                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-violet" />
+                    waiting
+                  </span>
                 </span>
                 <span className="flex items-center gap-2">
-                  <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-bad" />
-                  <b className="font-semibold">Product licence</b> · revoked
+                  <span aria-hidden="true" className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                    <Image src="/landing/avatar-5.png" alt="" fill sizes="28px" className="scale-[1.06] object-cover" />
+                  </span>
+                  <b className="font-semibold">Product licence</b>
+                  <span className="flex items-center gap-1.5 text-grey">
+                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-bad" />
+                    revoked
+                  </span>
                 </span>
               </div>
             </div>
@@ -283,6 +291,12 @@ function HowItWorks() {
 // ---------------------------------------------------------------- creators
 
 const FRAMES = ["#F6C9DD", "#BFE3C9", "#C9B8FA", "#DCF37B"];
+/** Example photos for empty creator slots, each in a gradient frame. */
+const EXAMPLES = [
+  { photo: "/landing/portrait-pink.png", frame: "/landing/card-violet.png" },
+  { photo: "/landing/portrait-glasses.png", frame: "/landing/card-ribbons.png" },
+  { photo: "/landing/portrait-curly.png", frame: "/landing/card-sky.png" },
+];
 const TILTS = ["-7deg", "-3deg", "6deg"];
 /** Grid placement at sm and up: first card tall on the left, heading top right, the others below it. */
 const PLACE = ["sm:col-start-1 sm:row-span-2 sm:row-start-1", "sm:col-start-2 sm:row-start-2 sm:-ml-6 sm:mt-6", "sm:col-start-3 sm:row-start-2 sm:-mt-4"];
@@ -306,8 +320,8 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
         <div className={`rv${seen ? " in" : ""} flex flex-wrap items-end gap-4 sm:col-span-2 sm:col-start-2 sm:row-start-1 sm:self-start sm:pl-6 sm:pt-8`}>
           <h2 className="m-0 font-display text-[clamp(26px,3.4vw,40px)] font-extrabold leading-[1.15]">
             MEET THE{" "}
-            <span aria-hidden="true" className="inline-flex h-10 w-10 items-end justify-center overflow-hidden rounded-full bg-lavender align-middle">
-              <Silhouette fill="#8B5CF6" width={34} height={38} />
+            <span aria-hidden="true" className="relative inline-block h-10 w-10 overflow-hidden rounded-full align-middle">
+              <Image src="/landing/avatar-7.png" alt="" fill sizes="40px" className="scale-[1.06] object-cover" />
             </span>
             <br />
             CREATORS
@@ -337,16 +351,25 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
           const transform = seen ? `rotate(${TILTS[i]})` : "translateX(160px) rotate(8deg)";
           const style = { transform, transitionDelay: `${0.1 + i * 0.18}s`, background: FRAMES[(i + shift) % FRAMES.length] };
           const cls = `card-in${seen ? " in" : ""} relative block self-start rounded-[28px] p-3 text-ink no-underline shadow-[0_18px_40px_rgba(18,19,22,0.12)] ${PLACE[i]}`;
-          if (!cr)
+          if (!cr) {
+            // A free slot: an example photo, labelled as one, inviting a real creator. Never a sample listing.
+            const ex = EXAMPLES[i % EXAMPLES.length];
             return (
-              <Link key={`empty-${i}`} href="/onboard" className={cls} style={style}>
-                <div className="flex aspect-[4/5] flex-col items-center justify-center gap-3 rounded-[20px] border-2 border-dashed border-ink/40 bg-white/50 p-6 text-center">
-                  <span className="font-display text-[15px] font-bold">YOUR FACE HERE</span>
-                  <span className="text-[14px] text-[#3E4148]">Verify once, set your terms, and get paid per render.</span>
-                  <span className={pillClass("ink")}>Become a creator</span>
+              <Link key={`example-${i}`} href="/onboard" className={cls} style={{ ...style, backgroundImage: `url(${ex.frame})`, backgroundSize: "cover" }}>
+                <span className="absolute left-5 top-5 z-10 rounded-full bg-white px-3 py-1.5 font-display text-[11px] font-bold">EXAMPLE</span>
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[20px]">
+                  <Image src={ex.photo} alt="" fill sizes="(min-width: 640px) 340px, 90vw" className="scale-[1.04] object-cover object-top" />
+                </div>
+                <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white px-3 py-2.5">
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-display text-[14px] font-bold">YOUR FACE HERE</span>
+                    <span className="text-[12px] text-grey">Verify once, get paid per render</span>
+                  </span>
+                  <span className={pillClass("ink", "min-h-9 px-3 text-[12px]")}>Become a creator</span>
                 </div>
               </Link>
             );
+          }
           const s = silhouetteFor(cr.address);
           return (
             <Link key={cr.address + i} href={`/market/${cr.address}`} className={cls} style={style}>
@@ -371,6 +394,9 @@ function Creators({ creators }: { creators: LandingCreator[] }) {
             </Link>
           );
         })}
+        {shown.some((c) => !c) && (
+          <p className="m-0 text-[13px] text-[#3E4148] sm:col-span-3">Cards marked Example use illustrative photos, not registered creators. Every creator listed here is a verified human.</p>
+        )}
       </div>
     </section>
   );
@@ -423,15 +449,24 @@ function Quotes() {
           </>
         )}
         <div className="px-4 sm:px-8">
-          <div className={`${c("rv")} relative mx-auto flex max-w-[1116px] flex-wrap items-center justify-between gap-5 overflow-hidden rounded-[24px] bg-[linear-gradient(100deg,#DCF37B_0%,#EAF8B4_55%,#F5FBE0_100%)] px-[30px] py-[26px]`}>
+          <div className={`${c("rv")} relative mx-auto flex max-w-[1116px] flex-wrap items-center justify-between gap-5 overflow-hidden rounded-[24px] bg-lime bg-[url(/landing/card-lime.png)] bg-cover bg-center px-[30px] py-[26px]`}>
             <h2 className="m-0 font-display text-[clamp(18px,2.2vw,24px)] font-extrabold leading-[1.25]">
               READY TO LICENSE YOUR FACE
               <br />
               ON YOUR TERMS?
             </h2>
-            <Link href="/onboard" className={pillClass("ink", "px-6 text-[14px]")}>
-              Get started
-            </Link>
+            <span className="flex items-center gap-4">
+              <span aria-hidden="true" className="hidden sm:flex">
+                {[6, 8, 5].map((n, i) => (
+                  <span key={n} className="relative h-11 w-11 overflow-hidden rounded-full border-[3px] border-white" style={{ marginLeft: i ? -12 : 0 }}>
+                    <Image src={`/landing/avatar-${n}.png`} alt="" fill sizes="44px" className="scale-[1.06] object-cover" />
+                  </span>
+                ))}
+              </span>
+              <Link href="/onboard" className={pillClass("ink", "px-6 text-[14px]")}>
+                Get started
+              </Link>
+            </span>
           </div>
         </div>
       </div>
